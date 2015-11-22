@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{34B54E00-DF35-4414-8E6F-59A24C895925}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Utils</RootNamespace>
+    <AssemblyName>Utils</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\Pisces\OilModelController\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <SkipPostSharp>True</SkipPostSharp>
+    <DontImportPostSharp>True</DontImportPostSharp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AbortException.cs" />
+    <Compile Include="ByteArrayLibrary.cs" />
+    <Compile Include="Certificates.cs" />
+    <Compile Include="Comparers\ComparerEx.cs" />
+    <Compile Include="Comparers\CustomComparer.cs" />
+    <Compile Include="Compression\CompressionUtils.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="DataStrucures\LinkedLists\CircularLinkedList.cs" />
+    <Compile Include="DataStrucures\LinkedLists\Node.cs" />
+    <Compile Include="Extensions\ArrayExtension.cs" />
+    <Compile Include="Extensions\SecureExtensions.cs" />
+    <Compile Include="Geometry\DouglasPeuckerAlgorithm.cs" />
+    <Compile Include="Geometry\IReductionAlgorithm.cs" />
+    <Compile Include="Geometry\Point2D.cs" />
+    <Compile Include="HashCode.cs" />
+    <Compile Include="Management\ManagementUtils.cs" />
+    <Compile Include="Network\IExternalConnection.cs" />
+    <Compile Include="ResourcesUtils.cs" />
+    <Compile Include="LoggableAttribute.cs" />
+    <Compile Include="ErrorAnalizerParams.cs" />
+    <Compile Include="ErrorLog.cs" />
+    <Compile Include="ExceptionHandling.cs" />
+    <Compile Include="Extensions\ApplicationExtension.cs" />
+    <Compile Include="Extensions\AssemblyExtension.cs" />
+    <Compile Include="Extensions\CollectionBaseExtension.cs" />
+    <Compile Include="Extensions\CryptoExtension.cs" />
+    <Compile Include="Extensions\DataRowExtension.cs" />
+    <Compile Include="Extensions\DateTimeExtension.cs" />
+    <Compile Include="Extensions\DBFieldAttribute.cs" />
+    <Compile Include="Extensions\DictionaryExtension.cs" />
+    <Compile Include="Extensions\EnumerableExtension.cs" />
+    <Compile Include="Extensions\ExceptionExtension.cs" />
+    <Compile Include="Extensions\FileSystemExtension.cs" />
+    <Compile Include="Extensions\FluentExtension.cs" />
+    <Compile Include="Extensions\GraphicsExtension.cs" />
+    <Compile Include="Extensions\IDbConverter.cs" />
+    <Compile Include="Extensions\MathExtension.cs" />
+    <Compile Include="Extensions\ObjectExtension.cs" />
+    <Compile Include="Extensions\ProcessExtension.cs" />
+    <Compile Include="Extensions\ReflectionExtension.cs" />
+    <Compile Include="Extensions\StringExtension.cs" />
+    <Compile Include="Extensions\TypeExtension.cs" />
+    <Compile Include="FileStreamEx.cs" />
+    <Compile Include="ListDescriptor.cs" />
+    <Compile Include="Messages.cs" />
+    <Compile Include="NullableHandling.cs" />
+    <Compile Include="OrderAttribute.cs" />
+    <Compile Include="Processes.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection.cs" />
+    <Compile Include="ContextBound\AspectProcessorAttribute.cs" />
+    <Compile Include="ContextBound\InterceptAttribute.cs" />
+    <Compile Include="ContextBound\InterceptProperty.cs" />
+    <Compile Include="ContextBound\InterceptSink.cs" />
+    <Compile Include="StringUtils.cs" />
+    <Compile Include="XmlSerialization.cs" />
+    <Compile Include="WinApi.Constants.cs">
+      <DependentUpon>WinApi.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinApi.cs" />
+    <Compile Include="WinApi.Structures.cs">
+      <DependentUpon>WinApi.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assemblies\Common.Logging.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Import Project="..\SportPrograms.Infrastructure\packages\PostSharp.4.0.43\tools\PostSharp.targets" Condition="Exists('..\SportPrograms.Infrastructure\packages\PostSharp.4.0.43\tools\PostSharp.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
