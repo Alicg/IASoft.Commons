@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityUtils", "UnityUtils\Un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{34B54E00-DF35-4414-8E6F-59A24C895925}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DALUtils", "DALUtils\DALUtils.csproj", "{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{34B54E00-DF35-4414-8E6F-59A24C895925}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34B54E00-DF35-4414-8E6F-59A24C895925}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34B54E00-DF35-4414-8E6F-59A24C895925}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
