@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DALUtils", "DALUtils\DALUtils.csproj", "{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DALUtils.EF", "DALUtils.EF\DALUtils.EF.csproj", "{656CCCE2-AF08-4A71-A2A3-299A0C28E0C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DALUtils.SQLite", "DALUtils.SQLite\DALUtils.SQLite.csproj", "{2AE39305-011A-4096-883C-643CC7A76E28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B507C4BE-4BF4-4BE6-85C6-5FC30E6B0110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{656CCCE2-AF08-4A71-A2A3-299A0C28E0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{656CCCE2-AF08-4A71-A2A3-299A0C28E0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{656CCCE2-AF08-4A71-A2A3-299A0C28E0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{656CCCE2-AF08-4A71-A2A3-299A0C28E0C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE39305-011A-4096-883C-643CC7A76E28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE39305-011A-4096-883C-643CC7A76E28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE39305-011A-4096-883C-643CC7A76E28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE39305-011A-4096-883C-643CC7A76E28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
