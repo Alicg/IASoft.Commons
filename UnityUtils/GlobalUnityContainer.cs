@@ -16,6 +16,14 @@
             _container = new UnityContainer();
         }
 
+        public static void ReplaceContainer(IUnityContainer parentContainer)
+        {
+            lock (_container)
+            {
+                _container = parentContainer;
+            }
+        }
+
         public static void InitContainer(IUnityContainer parentContainer)
         {
             lock (_container)
