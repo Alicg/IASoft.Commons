@@ -36,7 +36,7 @@ namespace DALUtils.SQLite.DataPatterns
                 int dbId;
                 try
                 {
-                    dbId = this.All().Max(v => v.Id);
+                    dbId = this.All().OrderByDescending(v => v.Id).Select(v => v.Id).FirstOrDefault();
                 }
                 catch
                 {
