@@ -84,6 +84,11 @@
             this.ObjectSet.Clear();
         }
 
+        public int DeleteAll(Expression<Func<T, bool>> predicate)
+        {
+            return this.ObjectSet.RemoveAll(v => predicate.Compile()(v));
+        }
+
         public void DeleteById(long id)
         {
             this.ObjectSet.RemoveAll(e => e.Id == id);

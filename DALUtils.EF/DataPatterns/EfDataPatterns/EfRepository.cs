@@ -1,4 +1,6 @@
-﻿namespace Utils.DAL.DataPatterns.EfDataPatterns
+﻿using EntityFramework.Extensions;
+
+namespace Utils.DAL.DataPatterns.EfDataPatterns
 {
     using System;
     using System.Data.Entity;
@@ -84,6 +86,11 @@
         {
             var tableName = this.GetTableName();
             this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + tableName + "]");
+        }
+
+        public int DeleteAll(Expression<Func<T, bool>> predicate)
+        {
+            return this.objectset.Where(predicate).Delete();
         }
 
         public void DeleteById(long id)
