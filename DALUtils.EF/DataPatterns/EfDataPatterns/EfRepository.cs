@@ -1,4 +1,4 @@
-﻿using EntityFramework.Extensions;
+﻿using Utils.Extensions;
 
 namespace Utils.DAL.DataPatterns.EfDataPatterns
 {
@@ -90,7 +90,7 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
         public int DeleteAll(Expression<Func<T, bool>> predicate)
         {
-            return this.objectset.Where(predicate).Delete();
+            return this.Where(predicate).ForEach(v => this.DeleteById(v.Id)).Count();
         }
 
         public void DeleteById(long id)
