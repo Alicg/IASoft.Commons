@@ -144,39 +144,50 @@ namespace Utils.Extensions
             return res;
         }
 
-
-/*
-        private static FieldInfo GetEventField(this IReflect type, string eventName)
+        public static IEnumerable<Type> FindAllDerivedTypes<T>()
         {
-            var field = type.GetField(eventName, BindingFlags.Instance |
-              BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Public);
-
-          
-
-            if (field == null) return null; 
-
-            if (field.FieldType == typeof(MulticastDelegate))  return field;
-
-            if (field.FieldType.IsSubclassOf(typeof(MulticastDelegate))) return field; 
-
-            return null;
+            return FindAllDerivedTypes<T>(Assembly.GetAssembly(typeof(T)));
         }
 
-        public static IEnumerable<Delegate> GetEventInvocations(this object obj, string eventName)
+        public static IEnumerable<Type> FindAllDerivedTypes<T>(this Assembly assembly)
         {
-            var fi = obj.GetType().GetEventField(eventName);
-            if (fi == null) return new Delegate[0];
-            var d = fi.GetValue(obj) as MulticastDelegate;
-            if (d == null) return new Delegate[0]; 
-            return d.GetInvocationList();
+            var derivedType = typeof(T);
+            return assembly.GetTypes().Where(t => t != derivedType && derivedType.IsAssignableFrom(t));
         }
 
-        public static void ClearEventInvocations(this object obj, string eventName)
-        {
-            var fi = obj.GetType().GetEventField(eventName);
-            if (fi == null) return;
-            fi.SetValue(obj, null);
-        }
-*/
+
+        /*
+                private static FieldInfo GetEventField(this IReflect type, string eventName)
+                {
+                    var field = type.GetField(eventName, BindingFlags.Instance |
+                      BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Public);
+
+
+
+                    if (field == null) return null; 
+
+                    if (field.FieldType == typeof(MulticastDelegate))  return field;
+
+                    if (field.FieldType.IsSubclassOf(typeof(MulticastDelegate))) return field; 
+
+                    return null;
+                }
+
+                public static IEnumerable<Delegate> GetEventInvocations(this object obj, string eventName)
+                {
+                    var fi = obj.GetType().GetEventField(eventName);
+                    if (fi == null) return new Delegate[0];
+                    var d = fi.GetValue(obj) as MulticastDelegate;
+                    if (d == null) return new Delegate[0]; 
+                    return d.GetInvocationList();
+                }
+
+                public static void ClearEventInvocations(this object obj, string eventName)
+                {
+                    var fi = obj.GetType().GetEventField(eventName);
+                    if (fi == null) return;
+                    fi.SetValue(obj, null);
+                }
+        */
     }
 }
