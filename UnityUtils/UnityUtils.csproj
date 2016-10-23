@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UnityUtils</RootNamespace>
     <AssemblyName>UnityUtils</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
@@ -60,8 +60,6 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy
-      SourceFiles="$(OutputPath)/UnityUtils.dll"
-      DestinationFolder="$(SolutionDir)artifacts"/>
+    <Copy SourceFiles="$(OutputPath)/UnityUtils.dll" DestinationFolder="$(SolutionDir)artifacts" />
   </Target>
 </Project>

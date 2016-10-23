@@ -93,13 +93,13 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
             return this.Where(predicate).ForEach(v => this.DeleteById(v.Id)).Count();
         }
 
-        public void DeleteById(long id)
+        public virtual void DeleteById(long id)
         {
             var tableName = this.GetTableName();
             this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + tableName + "] WHERE Id={0}", id);
         }
 
-        public void DeleteByIds(params long[] ids)
+        public virtual void DeleteByIds(params long[] ids)
         {
             if(!ids.Any())
                 return;
@@ -115,7 +115,7 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
             this.unitOfWork.Context.Database.ExecuteSqlCommand(sql);
         }
 
-        private string GetTableName()
+        protected string GetTableName()
         {
             return (this.unitOfWork.Context as IObjectContextAdapter).ObjectContext.CreateObjectSet<T>().EntitySet.Name;
         }

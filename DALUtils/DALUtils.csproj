@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Utils.DAL</RootNamespace>
     <AssemblyName>DALUtils</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
@@ -84,9 +84,6 @@
   <Target Name="BeforeBuild">
   </Target>-->
   <Target Name="AfterBuild">
-    <Copy
-      SourceFiles="$(OutputPath)/DALUtils.dll"
-      DestinationFolder="$(SolutionDir)artifacts"/>
+    <Copy SourceFiles="$(OutputPath)/DALUtils.dll" DestinationFolder="$(SolutionDir)artifacts" />
   </Target>
-
 </Project>
