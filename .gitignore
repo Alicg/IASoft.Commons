@@ -3,3 +3,5 @@ bin
 obj
 packages
 /DALUtils.EF/*.DotSettings
+ReleaseBinaries
+artifacts
