@@ -7,12 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using System.Threading;
 using FFMpegWrapper;
 
 public class MediaHandler
 {
     public static bool DebugModeEnabled = false;
+    public static string LogFile = "ffmpegwrapper.log";
     private readonly string fontsPath;
     private int _disable_license_validation = 1;
 
@@ -3005,7 +3006,12 @@ public class MediaHandler
                 sb.AppendLine($"Error:\r\n{errorMessage} \r\n----------");
             }
             sb.AppendLine("----------");
-            File.AppendAllText("ffmpegwrapper.log", sb.ToString());
+            var lockTaken = Monitor.TryEnter(LogFile, new TimeSpan(0, 0, 1));
+            if (lockTaken)
+            {
+                File.AppendAllText(LogFile, sb.ToString());
+                Monitor.Exit(LogFile);
+            }
         }
 	    process.WaitForExit();
         if (!process.HasExited)
