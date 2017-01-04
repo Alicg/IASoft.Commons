@@ -1,0 +1,777 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="chinookModel.Store" Provider="System.Data.SQLite.EF6" ProviderManifestToken="data source=W:\Home\sport\CommonLibs\Tests\DataTests\TestModel\chinook.db;Journal Mode=Wal;Synchronous=Off;Foreign Keys=True" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="albums">
+          <Key>
+            <PropertyRef Name="AlbumId" />
+          </Key>
+          <Property Name="AlbumId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="160" Nullable="false" />
+          <Property Name="ArtistId" Type="integer" Nullable="false" />
+        </EntityType>
+        <EntityType Name="artists">
+          <Key>
+            <PropertyRef Name="ArtistId" />
+          </Key>
+          <Property Name="ArtistId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="120" />
+        </EntityType>
+        <EntityType Name="customers">
+          <Key>
+            <PropertyRef Name="CustomerId" />
+          </Key>
+          <Property Name="CustomerId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="40" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="Company" Type="nvarchar" MaxLength="80" />
+          <Property Name="Address" Type="nvarchar" MaxLength="70" />
+          <Property Name="City" Type="nvarchar" MaxLength="40" />
+          <Property Name="State" Type="nvarchar" MaxLength="40" />
+          <Property Name="Country" Type="nvarchar" MaxLength="40" />
+          <Property Name="PostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="24" />
+          <Property Name="Fax" Type="nvarchar" MaxLength="24" />
+          <Property Name="Email" Type="nvarchar" MaxLength="60" Nullable="false" />
+          <Property Name="SupportRepId" Type="integer" />
+        </EntityType>
+        <EntityType Name="employees">
+          <Key>
+            <PropertyRef Name="EmployeeId" />
+          </Key>
+          <Property Name="EmployeeId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="30" />
+          <Property Name="ReportsTo" Type="integer" />
+          <Property Name="BirthDate" Type="datetime" />
+          <Property Name="HireDate" Type="datetime" />
+          <Property Name="Address" Type="nvarchar" MaxLength="70" />
+          <Property Name="City" Type="nvarchar" MaxLength="40" />
+          <Property Name="State" Type="nvarchar" MaxLength="40" />
+          <Property Name="Country" Type="nvarchar" MaxLength="40" />
+          <Property Name="PostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="24" />
+          <Property Name="Fax" Type="nvarchar" MaxLength="24" />
+          <Property Name="Email" Type="nvarchar" MaxLength="60" />
+        </EntityType>
+        <EntityType Name="genres">
+          <Key>
+            <PropertyRef Name="GenreId" />
+          </Key>
+          <Property Name="GenreId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="120" />
+        </EntityType>
+        <EntityType Name="invoice_items">
+          <Key>
+            <PropertyRef Name="InvoiceLineId" />
+          </Key>
+          <Property Name="InvoiceLineId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceId" Type="integer" Nullable="false" />
+          <Property Name="TrackId" Type="integer" Nullable="false" />
+          <Property Name="UnitPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Quantity" Type="integer" Nullable="false" />
+        </EntityType>
+        <EntityType Name="invoices">
+          <Key>
+            <PropertyRef Name="InvoiceId" />
+          </Key>
+          <Property Name="InvoiceId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CustomerId" Type="integer" Nullable="false" />
+          <Property Name="InvoiceDate" Type="datetime" Nullable="false" />
+          <Property Name="BillingAddress" Type="nvarchar" MaxLength="70" />
+          <Property Name="BillingCity" Type="nvarchar" MaxLength="40" />
+          <Property Name="BillingState" Type="nvarchar" MaxLength="40" />
+          <Property Name="BillingCountry" Type="nvarchar" MaxLength="40" />
+          <Property Name="BillingPostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Total" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+        </EntityType>
+        <EntityType Name="media_types">
+          <Key>
+            <PropertyRef Name="MediaTypeId" />
+          </Key>
+          <Property Name="MediaTypeId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="120" />
+        </EntityType>
+        <EntityType Name="playlist_track">
+          <Key>
+            <PropertyRef Name="PlaylistId" />
+            <PropertyRef Name="TrackId" />
+          </Key>
+          <Property Name="PlaylistId" Type="integer" Nullable="false" />
+          <Property Name="TrackId" Type="integer" Nullable="false" />
+        </EntityType>
+        <EntityType Name="playlists">
+          <Key>
+            <PropertyRef Name="PlaylistId" />
+          </Key>
+          <Property Name="PlaylistId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="120" />
+        </EntityType>
+        <EntityType Name="tracks">
+          <Key>
+            <PropertyRef Name="TrackId" />
+          </Key>
+          <Property Name="TrackId" Type="integer" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="AlbumId" Type="integer" />
+          <Property Name="MediaTypeId" Type="integer" Nullable="false" />
+          <Property Name="GenreId" Type="integer" />
+          <Property Name="Composer" Type="nvarchar" MaxLength="220" />
+          <Property Name="Milliseconds" Type="integer" Nullable="false" />
+          <Property Name="Bytes" Type="integer" />
+          <Property Name="UnitPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_albums_0_0">
+          <End Role="artists" Type="Self.artists" Multiplicity="1" />
+          <End Role="albums" Type="Self.albums" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="artists">
+              <PropertyRef Name="ArtistId" />
+            </Principal>
+            <Dependent Role="albums">
+              <PropertyRef Name="ArtistId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_customers_0_0">
+          <End Role="employees" Type="Self.employees" Multiplicity="0..1" />
+          <End Role="customers" Type="Self.customers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="employees">
+              <PropertyRef Name="EmployeeId" />
+            </Principal>
+            <Dependent Role="customers">
+              <PropertyRef Name="SupportRepId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_employees_0_0">
+          <End Role="employees" Type="Self.employees" Multiplicity="0..1" />
+          <End Role="employees1" Type="Self.employees" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="employees">
+              <PropertyRef Name="EmployeeId" />
+            </Principal>
+            <Dependent Role="employees1">
+              <PropertyRef Name="ReportsTo" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoice_items_0_0">
+          <End Role="tracks" Type="Self.tracks" Multiplicity="1" />
+          <End Role="invoice_items" Type="Self.invoice_items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tracks">
+              <PropertyRef Name="TrackId" />
+            </Principal>
+            <Dependent Role="invoice_items">
+              <PropertyRef Name="TrackId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoice_items_1_0">
+          <End Role="invoices" Type="Self.invoices" Multiplicity="1" />
+          <End Role="invoice_items" Type="Self.invoice_items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="invoices">
+              <PropertyRef Name="InvoiceId" />
+            </Principal>
+            <Dependent Role="invoice_items">
+              <PropertyRef Name="InvoiceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoices_0_0">
+          <End Role="customers" Type="Self.customers" Multiplicity="1" />
+          <End Role="invoices" Type="Self.invoices" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="customers">
+              <PropertyRef Name="CustomerId" />
+            </Principal>
+            <Dependent Role="invoices">
+              <PropertyRef Name="CustomerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_playlist_track_0_0">
+          <End Role="tracks" Type="Self.tracks" Multiplicity="1" />
+          <End Role="playlist_track" Type="Self.playlist_track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tracks">
+              <PropertyRef Name="TrackId" />
+            </Principal>
+            <Dependent Role="playlist_track">
+              <PropertyRef Name="TrackId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_playlist_track_1_0">
+          <End Role="playlists" Type="Self.playlists" Multiplicity="1" />
+          <End Role="playlist_track" Type="Self.playlist_track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="playlists">
+              <PropertyRef Name="PlaylistId" />
+            </Principal>
+            <Dependent Role="playlist_track">
+              <PropertyRef Name="PlaylistId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_0_0">
+          <End Role="media_types" Type="Self.media_types" Multiplicity="1" />
+          <End Role="tracks" Type="Self.tracks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="media_types">
+              <PropertyRef Name="MediaTypeId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="MediaTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_1_0">
+          <End Role="genres" Type="Self.genres" Multiplicity="0..1" />
+          <End Role="tracks" Type="Self.tracks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="genres">
+              <PropertyRef Name="GenreId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="GenreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_2_0">
+          <End Role="albums" Type="Self.albums" Multiplicity="0..1" />
+          <End Role="tracks" Type="Self.tracks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="albums">
+              <PropertyRef Name="AlbumId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="AlbumId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="chinookModelStoreContainer">
+          <EntitySet Name="albums" EntityType="Self.albums" store:Type="Tables" />
+          <EntitySet Name="artists" EntityType="Self.artists" store:Type="Tables" />
+          <EntitySet Name="customers" EntityType="Self.customers" store:Type="Tables" />
+          <EntitySet Name="employees" EntityType="Self.employees" store:Type="Tables" />
+          <EntitySet Name="genres" EntityType="Self.genres" store:Type="Tables" />
+          <EntitySet Name="invoice_items" EntityType="Self.invoice_items" store:Type="Tables" />
+          <EntitySet Name="invoices" EntityType="Self.invoices" store:Type="Tables" />
+          <EntitySet Name="media_types" EntityType="Self.media_types" store:Type="Tables" />
+          <EntitySet Name="playlist_track" EntityType="Self.playlist_track" store:Type="Tables" />
+          <EntitySet Name="playlists" EntityType="Self.playlists" store:Type="Tables" />
+          <EntitySet Name="tracks" EntityType="Self.tracks" store:Type="Tables" />
+          <AssociationSet Name="FK_albums_0_0" Association="Self.FK_albums_0_0">
+            <End Role="artists" EntitySet="artists" />
+            <End Role="albums" EntitySet="albums" />
+          </AssociationSet>
+          <AssociationSet Name="FK_customers_0_0" Association="Self.FK_customers_0_0">
+            <End Role="employees" EntitySet="employees" />
+            <End Role="customers" EntitySet="customers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_employees_0_0" Association="Self.FK_employees_0_0">
+            <End Role="employees" EntitySet="employees" />
+            <End Role="employees1" EntitySet="employees" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoice_items_0_0" Association="Self.FK_invoice_items_0_0">
+            <End Role="tracks" EntitySet="tracks" />
+            <End Role="invoice_items" EntitySet="invoice_items" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoice_items_1_0" Association="Self.FK_invoice_items_1_0">
+            <End Role="invoices" EntitySet="invoices" />
+            <End Role="invoice_items" EntitySet="invoice_items" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoices_0_0" Association="Self.FK_invoices_0_0">
+            <End Role="customers" EntitySet="customers" />
+            <End Role="invoices" EntitySet="invoices" />
+          </AssociationSet>
+          <AssociationSet Name="FK_playlist_track_0_0" Association="Self.FK_playlist_track_0_0">
+            <End Role="tracks" EntitySet="tracks" />
+            <End Role="playlist_track" EntitySet="playlist_track" />
+          </AssociationSet>
+          <AssociationSet Name="FK_playlist_track_1_0" Association="Self.FK_playlist_track_1_0">
+            <End Role="playlists" EntitySet="playlists" />
+            <End Role="playlist_track" EntitySet="playlist_track" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_0_0" Association="Self.FK_tracks_0_0">
+            <End Role="media_types" EntitySet="media_types" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_1_0" Association="Self.FK_tracks_1_0">
+            <End Role="genres" EntitySet="genres" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_2_0" Association="Self.FK_tracks_2_0">
+            <End Role="albums" EntitySet="albums" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="chinookModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="album">
+          <Key>
+            <PropertyRef Name="AlbumId" />
+          </Key>
+          <Property Name="AlbumId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Title" Type="String" MaxLength="160" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ArtistId" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="artist" Relationship="Self.FK_albums_0_0" FromRole="albums" ToRole="artists" />
+          <NavigationProperty Name="tracks" Relationship="Self.FK_tracks_2_0" FromRole="albums" ToRole="tracks" />
+        </EntityType>
+        <EntityType Name="artist">
+          <Key>
+            <PropertyRef Name="ArtistId" />
+          </Key>
+          <Property Name="ArtistId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="120" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="albums" Relationship="Self.FK_albums_0_0" FromRole="artists" ToRole="albums" />
+        </EntityType>
+        <EntityType Name="customer">
+          <Key>
+            <PropertyRef Name="CustomerId" />
+          </Key>
+          <Property Name="CustomerId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FirstName" Type="String" MaxLength="40" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="LastName" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Company" Type="String" MaxLength="80" FixedLength="false" Unicode="true" />
+          <Property Name="Address" Type="String" MaxLength="70" FixedLength="false" Unicode="true" />
+          <Property Name="City" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="State" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Name="Fax" Type="String" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="60" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="SupportRepId" Type="Int64" />
+          <NavigationProperty Name="employee" Relationship="Self.FK_customers_0_0" FromRole="customers" ToRole="employees" />
+          <NavigationProperty Name="invoices" Relationship="Self.FK_invoices_0_0" FromRole="customers" ToRole="invoices" />
+        </EntityType>
+        <EntityType Name="employee">
+          <Key>
+            <PropertyRef Name="EmployeeId" />
+          </Key>
+          <Property Name="EmployeeId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LastName" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="FirstName" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Title" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="ReportsTo" Type="Int64" />
+          <Property Name="BirthDate" Type="DateTime" />
+          <Property Name="HireDate" Type="DateTime" />
+          <Property Name="Address" Type="String" MaxLength="70" FixedLength="false" Unicode="true" />
+          <Property Name="City" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="State" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Name="Fax" Type="String" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="60" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="customers" Relationship="Self.FK_customers_0_0" FromRole="employees" ToRole="customers" />
+          <NavigationProperty Name="employees1" Relationship="Self.FK_employees_0_0" FromRole="employees" ToRole="employees1" />
+          <NavigationProperty Name="employee1" Relationship="Self.FK_employees_0_0" FromRole="employees1" ToRole="employees" />
+        </EntityType>
+        <EntityType Name="genre">
+          <Key>
+            <PropertyRef Name="GenreId" />
+          </Key>
+          <Property Name="GenreId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="120" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tracks" Relationship="Self.FK_tracks_1_0" FromRole="genres" ToRole="tracks" />
+        </EntityType>
+        <EntityType Name="invoice_items">
+          <Key>
+            <PropertyRef Name="InvoiceLineId" />
+          </Key>
+          <Property Name="InvoiceLineId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceId" Type="Int64" Nullable="false" />
+          <Property Name="TrackId" Type="Int64" Nullable="false" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Quantity" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="track" Relationship="Self.FK_invoice_items_0_0" FromRole="invoice_items" ToRole="tracks" />
+          <NavigationProperty Name="invoice" Relationship="Self.FK_invoice_items_1_0" FromRole="invoice_items" ToRole="invoices" />
+        </EntityType>
+        <EntityType Name="invoice">
+          <Key>
+            <PropertyRef Name="InvoiceId" />
+          </Key>
+          <Property Name="InvoiceId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerId" Type="Int64" Nullable="false" />
+          <Property Name="InvoiceDate" Type="DateTime" Nullable="false" />
+          <Property Name="BillingAddress" Type="String" MaxLength="70" FixedLength="false" Unicode="true" />
+          <Property Name="BillingCity" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="BillingState" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="BillingCountry" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="BillingPostalCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Total" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <NavigationProperty Name="customer" Relationship="Self.FK_invoices_0_0" FromRole="invoices" ToRole="customers" />
+          <NavigationProperty Name="invoice_items" Relationship="Self.FK_invoice_items_1_0" FromRole="invoices" ToRole="invoice_items" />
+        </EntityType>
+        <EntityType Name="media_types">
+          <Key>
+            <PropertyRef Name="MediaTypeId" />
+          </Key>
+          <Property Name="MediaTypeId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="120" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tracks" Relationship="Self.FK_tracks_0_0" FromRole="media_types" ToRole="tracks" />
+        </EntityType>
+        <EntityType Name="playlist">
+          <Key>
+            <PropertyRef Name="PlaylistId" />
+          </Key>
+          <Property Name="PlaylistId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="120" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tracks" Relationship="Self.playlist_track" FromRole="playlists" ToRole="tracks" />
+        </EntityType>
+        <EntityType Name="track">
+          <Key>
+            <PropertyRef Name="TrackId" />
+          </Key>
+          <Property Name="TrackId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="AlbumId" Type="Int64" />
+          <Property Name="MediaTypeId" Type="Int64" Nullable="false" />
+          <Property Name="GenreId" Type="Int64" />
+          <Property Name="Composer" Type="String" MaxLength="220" FixedLength="false" Unicode="true" />
+          <Property Name="Milliseconds" Type="Int64" Nullable="false" />
+          <Property Name="Bytes" Type="Int64" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <NavigationProperty Name="album" Relationship="Self.FK_tracks_2_0" FromRole="tracks" ToRole="albums" />
+          <NavigationProperty Name="genre" Relationship="Self.FK_tracks_1_0" FromRole="tracks" ToRole="genres" />
+          <NavigationProperty Name="invoice_items" Relationship="Self.FK_invoice_items_0_0" FromRole="tracks" ToRole="invoice_items" />
+          <NavigationProperty Name="media_types" Relationship="Self.FK_tracks_0_0" FromRole="tracks" ToRole="media_types" />
+          <NavigationProperty Name="playlists" Relationship="Self.playlist_track" FromRole="tracks" ToRole="playlists" />
+        </EntityType>
+        <Association Name="FK_albums_0_0">
+          <End Role="artists" Type="Self.artist" Multiplicity="1" />
+          <End Role="albums" Type="Self.album" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="artists">
+              <PropertyRef Name="ArtistId" />
+            </Principal>
+            <Dependent Role="albums">
+              <PropertyRef Name="ArtistId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_2_0">
+          <End Role="albums" Type="Self.album" Multiplicity="0..1" />
+          <End Role="tracks" Type="Self.track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="albums">
+              <PropertyRef Name="AlbumId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="AlbumId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_customers_0_0">
+          <End Role="employees" Type="Self.employee" Multiplicity="0..1" />
+          <End Role="customers" Type="Self.customer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="employees">
+              <PropertyRef Name="EmployeeId" />
+            </Principal>
+            <Dependent Role="customers">
+              <PropertyRef Name="SupportRepId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoices_0_0">
+          <End Role="customers" Type="Self.customer" Multiplicity="1" />
+          <End Role="invoices" Type="Self.invoice" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="customers">
+              <PropertyRef Name="CustomerId" />
+            </Principal>
+            <Dependent Role="invoices">
+              <PropertyRef Name="CustomerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_employees_0_0">
+          <End Role="employees" Type="Self.employee" Multiplicity="0..1" />
+          <End Role="employees1" Type="Self.employee" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="employees">
+              <PropertyRef Name="EmployeeId" />
+            </Principal>
+            <Dependent Role="employees1">
+              <PropertyRef Name="ReportsTo" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_1_0">
+          <End Role="genres" Type="Self.genre" Multiplicity="0..1" />
+          <End Role="tracks" Type="Self.track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="genres">
+              <PropertyRef Name="GenreId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="GenreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoice_items_0_0">
+          <End Role="tracks" Type="Self.track" Multiplicity="1" />
+          <End Role="invoice_items" Type="Self.invoice_items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tracks">
+              <PropertyRef Name="TrackId" />
+            </Principal>
+            <Dependent Role="invoice_items">
+              <PropertyRef Name="TrackId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_invoice_items_1_0">
+          <End Role="invoices" Type="Self.invoice" Multiplicity="1" />
+          <End Role="invoice_items" Type="Self.invoice_items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="invoices">
+              <PropertyRef Name="InvoiceId" />
+            </Principal>
+            <Dependent Role="invoice_items">
+              <PropertyRef Name="InvoiceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tracks_0_0">
+          <End Role="media_types" Type="Self.media_types" Multiplicity="1" />
+          <End Role="tracks" Type="Self.track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="media_types">
+              <PropertyRef Name="MediaTypeId" />
+            </Principal>
+            <Dependent Role="tracks">
+              <PropertyRef Name="MediaTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="playlist_track">
+          <End Role="tracks" Type="Self.track" Multiplicity="*" />
+          <End Role="playlists" Type="Self.playlist" Multiplicity="*" />
+        </Association>
+        <EntityContainer Name="chinookEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="albums" EntityType="Self.album" />
+          <EntitySet Name="artists" EntityType="Self.artist" />
+          <EntitySet Name="customers" EntityType="Self.customer" />
+          <EntitySet Name="employees" EntityType="Self.employee" />
+          <EntitySet Name="genres" EntityType="Self.genre" />
+          <EntitySet Name="invoice_items" EntityType="Self.invoice_items" />
+          <EntitySet Name="invoices" EntityType="Self.invoice" />
+          <EntitySet Name="media_types" EntityType="Self.media_types" />
+          <EntitySet Name="playlists" EntityType="Self.playlist" />
+          <EntitySet Name="tracks" EntityType="Self.track" />
+          <AssociationSet Name="FK_albums_0_0" Association="Self.FK_albums_0_0">
+            <End Role="artists" EntitySet="artists" />
+            <End Role="albums" EntitySet="albums" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_2_0" Association="Self.FK_tracks_2_0">
+            <End Role="albums" EntitySet="albums" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_customers_0_0" Association="Self.FK_customers_0_0">
+            <End Role="employees" EntitySet="employees" />
+            <End Role="customers" EntitySet="customers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoices_0_0" Association="Self.FK_invoices_0_0">
+            <End Role="customers" EntitySet="customers" />
+            <End Role="invoices" EntitySet="invoices" />
+          </AssociationSet>
+          <AssociationSet Name="FK_employees_0_0" Association="Self.FK_employees_0_0">
+            <End Role="employees" EntitySet="employees" />
+            <End Role="employees1" EntitySet="employees" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_1_0" Association="Self.FK_tracks_1_0">
+            <End Role="genres" EntitySet="genres" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoice_items_0_0" Association="Self.FK_invoice_items_0_0">
+            <End Role="tracks" EntitySet="tracks" />
+            <End Role="invoice_items" EntitySet="invoice_items" />
+          </AssociationSet>
+          <AssociationSet Name="FK_invoice_items_1_0" Association="Self.FK_invoice_items_1_0">
+            <End Role="invoices" EntitySet="invoices" />
+            <End Role="invoice_items" EntitySet="invoice_items" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tracks_0_0" Association="Self.FK_tracks_0_0">
+            <End Role="media_types" EntitySet="media_types" />
+            <End Role="tracks" EntitySet="tracks" />
+          </AssociationSet>
+          <AssociationSet Name="playlist_track" Association="Self.playlist_track">
+            <End Role="tracks" EntitySet="tracks" />
+            <End Role="playlists" EntitySet="playlists" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="chinookModelStoreContainer" CdmEntityContainer="chinookEntities">
+          <EntitySetMapping Name="albums">
+            <EntityTypeMapping TypeName="chinookModel.album">
+              <MappingFragment StoreEntitySet="albums">
+                <ScalarProperty Name="AlbumId" ColumnName="AlbumId" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="ArtistId" ColumnName="ArtistId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="artists">
+            <EntityTypeMapping TypeName="chinookModel.artist">
+              <MappingFragment StoreEntitySet="artists">
+                <ScalarProperty Name="ArtistId" ColumnName="ArtistId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="customers">
+            <EntityTypeMapping TypeName="chinookModel.customer">
+              <MappingFragment StoreEntitySet="customers">
+                <ScalarProperty Name="CustomerId" ColumnName="CustomerId" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Company" ColumnName="Company" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="SupportRepId" ColumnName="SupportRepId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="employees">
+            <EntityTypeMapping TypeName="chinookModel.employee">
+              <MappingFragment StoreEntitySet="employees">
+                <ScalarProperty Name="EmployeeId" ColumnName="EmployeeId" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="ReportsTo" ColumnName="ReportsTo" />
+                <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+                <ScalarProperty Name="HireDate" ColumnName="HireDate" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="genres">
+            <EntityTypeMapping TypeName="chinookModel.genre">
+              <MappingFragment StoreEntitySet="genres">
+                <ScalarProperty Name="GenreId" ColumnName="GenreId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="invoice_items">
+            <EntityTypeMapping TypeName="chinookModel.invoice_items">
+              <MappingFragment StoreEntitySet="invoice_items">
+                <ScalarProperty Name="InvoiceLineId" ColumnName="InvoiceLineId" />
+                <ScalarProperty Name="InvoiceId" ColumnName="InvoiceId" />
+                <ScalarProperty Name="TrackId" ColumnName="TrackId" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="invoices">
+            <EntityTypeMapping TypeName="chinookModel.invoice">
+              <MappingFragment StoreEntitySet="invoices">
+                <ScalarProperty Name="InvoiceId" ColumnName="InvoiceId" />
+                <ScalarProperty Name="CustomerId" ColumnName="CustomerId" />
+                <ScalarProperty Name="InvoiceDate" ColumnName="InvoiceDate" />
+                <ScalarProperty Name="BillingAddress" ColumnName="BillingAddress" />
+                <ScalarProperty Name="BillingCity" ColumnName="BillingCity" />
+                <ScalarProperty Name="BillingState" ColumnName="BillingState" />
+                <ScalarProperty Name="BillingCountry" ColumnName="BillingCountry" />
+                <ScalarProperty Name="BillingPostalCode" ColumnName="BillingPostalCode" />
+                <ScalarProperty Name="Total" ColumnName="Total" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="media_types">
+            <EntityTypeMapping TypeName="chinookModel.media_types">
+              <MappingFragment StoreEntitySet="media_types">
+                <ScalarProperty Name="MediaTypeId" ColumnName="MediaTypeId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="playlists">
+            <EntityTypeMapping TypeName="chinookModel.playlist">
+              <MappingFragment StoreEntitySet="playlists">
+                <ScalarProperty Name="PlaylistId" ColumnName="PlaylistId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tracks">
+            <EntityTypeMapping TypeName="chinookModel.track">
+              <MappingFragment StoreEntitySet="tracks">
+                <ScalarProperty Name="TrackId" ColumnName="TrackId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="AlbumId" ColumnName="AlbumId" />
+                <ScalarProperty Name="MediaTypeId" ColumnName="MediaTypeId" />
+                <ScalarProperty Name="GenreId" ColumnName="GenreId" />
+                <ScalarProperty Name="Composer" ColumnName="Composer" />
+                <ScalarProperty Name="Milliseconds" ColumnName="Milliseconds" />
+                <ScalarProperty Name="Bytes" ColumnName="Bytes" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="playlist_track" TypeName="chinookModel.playlist_track" StoreEntitySet="playlist_track">
+            <EndProperty Name="tracks">
+              <ScalarProperty Name="TrackId" ColumnName="TrackId" />
+            </EndProperty>
+            <EndProperty Name="playlists">
+              <ScalarProperty Name="PlaylistId" ColumnName="PlaylistId" />
+            </EndProperty>
+          </AssociationSetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
