@@ -31,9 +31,8 @@ namespace DALUtils.SQLite.DataPatterns
         {
             using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
             {
-                var tableName = this.GetTableName();
                 connection.Open();
-                var command = new SQLiteCommand($"DELETE FROM [{tableName}] WHERE Id={id}", connection);
+                var command = new SQLiteCommand($"DELETE FROM [{this.TableName}] WHERE Id={id}", connection);
                 command.ExecuteNonQuery();
             }
         }
@@ -44,31 +43,37 @@ namespace DALUtils.SQLite.DataPatterns
                 return;
             using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
             {
-                var tableName = this.GetTableName();
                 connection.Open();
                 var parameters = ids.Aggregate("", (total, curr) => total + "," + curr);
                 parameters = $"({parameters.Remove(0, 1)})";
-                var command = new SQLiteCommand($"DELETE FROM [{tableName}] WHERE Id in {parameters}", connection);
+                var command = new SQLiteCommand($"DELETE FROM [{this.TableName}] WHERE Id in {parameters}", connection);
                 command.ExecuteNonQuery();
             }
         }
 
-        private static int lastDbId;
-        private static int lastSetId;
+        private static long lastDbId;
+        private static long lastSetId;
 
-        private int GetNextId()
+        private long GetNextId()
         {
             lock (this.GetType())
             {
-                int dbId;
+                long dbId;
                 try
                 {
-                    dbId = this.All().OrderByDescending(v => v.Id).Select(v => v.Id).FirstOrDefault();
+                    using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
+                    {
+                        connection.Open();
+                        var command = new SQLiteCommand($"select max(rowid) from [{this.TableName}]", connection);
+                        var scalarResult = command.ExecuteScalar();
+                        dbId = (long)scalarResult;
+                    }
                 }
                 catch
                 {
                     dbId = 0;
                 }
+                // еще не делали SaveChanges.
                 if (dbId == lastDbId)
                 {
                     lastSetId++;

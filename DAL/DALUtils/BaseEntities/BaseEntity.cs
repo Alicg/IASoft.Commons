@@ -4,7 +4,7 @@
     
     public abstract class BaseEntity
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         public T GetCopy<T>() where T : class
         {

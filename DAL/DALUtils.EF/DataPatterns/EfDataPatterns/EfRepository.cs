@@ -14,6 +14,7 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
     public class EfRepository<T> : IRepository<T> where T : BaseEntity, new ()
     {
+        private string tableName;
         private readonly EfUnitOfWork unitOfWork;
         public IUnitOfWork UnitOfWork => this.unitOfWork;
 
@@ -115,7 +116,9 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
             this.unitOfWork.Context.Database.ExecuteSqlCommand(sql);
         }
 
-        protected string GetTableName()
+        protected string TableName => this.tableName ?? (this.tableName = this.GetTableName());
+
+        private string GetTableName()
         {
             return (this.unitOfWork.Context as IObjectContextAdapter).ObjectContext.CreateObjectSet<T>().EntitySet.Name;
         }
