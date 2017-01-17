@@ -85,8 +85,8 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
         public void DeleteAll()
         {
-            var tableName = this.GetTableName();
-            this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + tableName + "]");
+            this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + this.GetTableName() + "]");
+            this.ObjectSet.Local.Clear();
         }
 
         public int DeleteAll(Expression<Func<T, bool>> predicate)
@@ -96,8 +96,15 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
         public virtual void DeleteById(long id)
         {
-            var tableName = this.GetTableName();
-            this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + tableName + "] WHERE Id={0}", id);
+            var existingObject = this.ObjectSet.Local.FirstOrDefault(v => v.Id == id);
+            if (existingObject != null)
+            {
+                this.ObjectSet.Remove(existingObject);
+            }
+            else
+            {
+                this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + this.GetTableName() + "] WHERE Id={0}", id);
+            }
         }
 
         public virtual void DeleteByIds(params long[] ids)
@@ -106,8 +113,7 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
                 return;
             var parameters = ids.Aggregate("",(total, curr) => total + "," + curr);
             parameters = $"({parameters.Remove(0, 1)})";
-            var tableName = this.GetTableName();
-            var command = $"DELETE FROM [{tableName}] WHERE Id in {parameters}";
+            var command = $"DELETE FROM [{this.GetTableName()}] WHERE Id in {parameters}";
             this.unitOfWork.Context.Database.ExecuteSqlCommand(command);
         }
 
