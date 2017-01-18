@@ -22,7 +22,6 @@
         void AddOrUpdate(T entity);
         T CloneById(long id, params Expression<Func<T, object>>[] paths);
         void Delete(T entity);
-        void DeleteAll();
         int DeleteAll(Expression<Func<T, bool>> predicate);
         void DeleteById(long id);
         void DeleteByIds(params long[] ids);

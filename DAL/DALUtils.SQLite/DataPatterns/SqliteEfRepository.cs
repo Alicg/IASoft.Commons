@@ -29,25 +29,27 @@ namespace DALUtils.SQLite.DataPatterns
 
         public override void DeleteById(long id)
         {
-            using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
+            var existingObject = this.ObjectSet.Local.FirstOrDefault(v => v.Id == id);
+            if (existingObject != null)
             {
-                connection.Open();
-                var command = new SQLiteCommand($"DELETE FROM [{this.TableName}] WHERE Id={id}", connection);
-                command.ExecuteNonQuery();
+                this.ObjectSet.Remove(existingObject);
+            }
+            else
+            {
+                using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
+                {
+                    connection.Open();
+                    var command = new SQLiteCommand($"DELETE FROM [{this.TableName}] WHERE Id={id}", connection);
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
         public override void DeleteByIds(params long[] ids)
         {
-            if (!ids.Any())
-                return;
-            using (var connection = new SQLiteConnection(((EfUnitOfWork)this.UnitOfWork).Context.Database.Connection.ConnectionString))
+            foreach (var id in ids)
             {
-                connection.Open();
-                var parameters = ids.Aggregate("", (total, curr) => total + "," + curr);
-                parameters = $"({parameters.Remove(0, 1)})";
-                var command = new SQLiteCommand($"DELETE FROM [{this.TableName}] WHERE Id in {parameters}", connection);
-                command.ExecuteNonQuery();
+                this.DeleteById(id);
             }
         }
 

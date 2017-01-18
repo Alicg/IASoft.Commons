@@ -34,7 +34,7 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
         private IDbSet<T> objectset;
 
-        private IDbSet<T> ObjectSet => this.objectset ?? (this.objectset = this.unitOfWork.Context.Set<T>());
+        protected IDbSet<T> ObjectSet => this.objectset ?? (this.objectset = this.unitOfWork.Context.Set<T>());
 
         public virtual IQueryable<T> All()
         {
@@ -83,12 +83,6 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
             this.ObjectSet.Remove(entity);
         }
 
-        public void DeleteAll()
-        {
-            this.unitOfWork.Context.Database.ExecuteSqlCommand("DELETE FROM [" + this.GetTableName() + "]");
-            this.ObjectSet.Local.Clear();
-        }
-
         public int DeleteAll(Expression<Func<T, bool>> predicate)
         {
             return this.Where(predicate).ForEach(v => this.DeleteById(v.Id)).Count();
@@ -109,12 +103,10 @@ namespace Utils.DAL.DataPatterns.EfDataPatterns
 
         public virtual void DeleteByIds(params long[] ids)
         {
-            if(!ids.Any())
-                return;
-            var parameters = ids.Aggregate("",(total, curr) => total + "," + curr);
-            parameters = $"({parameters.Remove(0, 1)})";
-            var command = $"DELETE FROM [{this.GetTableName()}] WHERE Id in {parameters}";
-            this.unitOfWork.Context.Database.ExecuteSqlCommand(command);
+            foreach (var id in ids)
+            {
+                this.DeleteById(id);
+            }
         }
 
         public void ExecuteSql(string sql)
