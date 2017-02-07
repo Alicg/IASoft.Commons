@@ -44,21 +44,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FFMpegTests.cs" />
+    <Compile Include="FFMpegVideoRendererTests.cs" />
+    <Compile Include="SampleFiles.cs" />
     <Compile Include="VideoUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SampleVideo_1280x720_1mb.mp4">
+    <Content Include="Helicopter_DivXHT_ASP_1-48.divx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="leo_console.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SampleVideo_1280x720_1mb_5s.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Video\FFMpegWrapper\FFMpegWrapper.csproj">
+      <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>
+      <Name>FFMpegWrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Video\Video.Utils\Video.Utils.csproj">
       <Project>{229AACED-E72F-4BBE-8071-56DA815E6578}</Project>
       <Name>Video.Utils</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

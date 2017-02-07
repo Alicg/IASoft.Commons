@@ -1,84 +1,64 @@
-﻿using System.Threading.Tasks;
-using Utils.Extensions;
+﻿using System;
+using System.Threading.Tasks;
+using FFMpegWrapper;
 
 namespace Video.Utils
 {
-    using System.IO;
-
-    using FFMpegWrapper;
-
-    public static class VideoUtils
+    public class VideoUtils : IVideoUtils
     {
-        private const string AppDir = "";
-
-        public static string FfmpegPath
+        public FFMpegVideoInfo GetVideoInfo(string videoFilePath)
         {
-            get
-            {
-                var pathToFFMpeg = Path.Combine(AppDir, "ffmpeg.exe");
-                if (!File.Exists(pathToFFMpeg))
-                {
-                    typeof(MediaHandler).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe").WriteToFile(pathToFFMpeg);
-                }
-                return pathToFFMpeg;
-            }
-        }
-
-        public static string FontsPath
-        {
-            get
-            {
-                var pathToFFMpeg = Path.Combine(AppDir, "arialbd.ttf");
-                if (!File.Exists(pathToFFMpeg))
-                {
-                    typeof(MediaHandler).Assembly.GetManifestResourceStream("FFMpegWrapper.arialbd.ttf").WriteToFile(pathToFFMpeg);
-                }
-                return pathToFFMpeg;
-            }
-        }
-
-        public static void Init()
-        {}
-
-        public static FFMpegVideoInfo GetVideoInfo(string videoFilePath)
-        {
-            var mhandler = new MediaHandler(FfmpegPath, FontsPath);
+            var mhandler = new FFMpeg();
             return mhandler.GetVideoInfo(videoFilePath);
         }
 
-        public static byte[] GetFrameFromVideoAsByte(string videoFile, double position)
+        public byte[] GetFrameFromVideoAsByte(string videoFile, double position)
         {
-            return GetFrameFromVideoAsByte(videoFile, position, FFMpegImageSize.qqvga);
+            return this.GetFrameFromVideoAsByte(videoFile, position, FFMpegImageSize.Qqvga);
         }
 
-        public static byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
+        public byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
         {
-            var mhandler = new MediaHandler(FfmpegPath, FontsPath);
+            var mhandler = new FFMpeg();
             return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
         }
 
-        public static async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position)
+        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position)
         {
-            return await GetFrameFromVideoAsByteAsync(videoFile, position, FFMpegImageSize.qqvga);
+            return await this.GetFrameFromVideoAsByteAsync(videoFile, position, FFMpegImageSize.Qqvga);
         }
 
-        public static async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize)
+        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize)
         {
             return await Task.Factory.StartNew(() =>
             {
-                var mhandler = new MediaHandler(FfmpegPath, FontsPath);
+                var mhandler = new FFMpeg();
                 return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
             });
         }
 
-        public static void EnableDebugMode()
+        public void StartRender(
+            VideoRenderOption[] renderOptions,
+            string outputFile,
+            Action<string, double> callbackAction = null,
+            Action<double, string> finishAction = null)
         {
-            MediaHandler.DebugModeEnabled = true;
+            var renderer = new FFMpegVideoRenderer();
+            foreach (var renderOption in renderOptions)
+            {
+                renderer.AddVideoEpisodes(renderOption);
+            }
+            renderer.StartRenderAsync(outputFile, callbackAction, finishAction);
         }
 
-        public static void DisableDebugMode()
+        public void EnableDebugMode()
         {
-            MediaHandler.DebugModeEnabled = false;
+            FFMpeg.DebugModeEnabled = true;
+        }
+
+        public void DisableDebugMode()
+        {
+            FFMpeg.DebugModeEnabled = false;
         }
     }
 }

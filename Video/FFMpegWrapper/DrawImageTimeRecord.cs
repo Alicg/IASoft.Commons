@@ -4,11 +4,11 @@
     {
         public DrawImageTimeRecord(byte[] imageData, int leftOffset, int topOffset, double imageStartSecond, double imageEndSecond)
         {
-            ImageEndSecond = imageEndSecond;
-            ImageStartSecond = imageStartSecond;
-            TopOffset = topOffset;
-            LeftOffset = leftOffset;
-            ImageData = imageData;
+            this.ImageEndSecond = imageEndSecond;
+            this.ImageStartSecond = imageStartSecond;
+            this.TopOffset = topOffset;
+            this.LeftOffset = leftOffset;
+            this.ImageData = imageData;
         }
 
         public byte[] ImageData { get; private set; }

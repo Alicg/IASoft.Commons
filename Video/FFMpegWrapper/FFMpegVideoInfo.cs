@@ -4,8 +4,8 @@
     {
         public FFMpegVideoInfo(int width, int height)
         {
-            Height = height;
-            Width = width;
+            this.Height = height;
+            this.Width = width;
         }
 
         public int Width { get; private set; }

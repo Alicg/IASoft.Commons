@@ -3,19 +3,19 @@
     public enum FFMpegImageSize
     {
         //160x120
-        qqvga,
+        Qqvga,
 
         //320x240
-        qvga,
+        Qvga,
 
         //640x480
-        vga,
+        Vga,
 
         //800x600
-        svga,
+        Svga,
 
         //1024x768
-        xga
+        Xga
 
     }
 }

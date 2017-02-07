@@ -6,19 +6,23 @@
 
     public class VideoRenderOption
     {
-        public VideoRenderOption(string filePath, double start, double end, string overlayText, List<DrawImageTimeRecord> imagesTimeTable)
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText, List<DrawImageTimeRecord> imagesTimeTable)
         {
-            OverlayText = overlayText;
-            End = end;
-            Start = start;
-            FilePath = filePath;
-            ImagesTimeTable = imagesTimeTable;
+            this.OverlayText = overlayText;
+            this.StartSecond = startSecond;
+            this.DurationSeconds = durationSeconds;
+            this.FilePath = filePath;
+            this.ImagesTimeTable = imagesTimeTable;
         }
 
         public string FilePath { get; private set; }
-        public double Start { get; private set; }
-        public double End { get; private set; }
+
+        public double StartSecond { get; private set; }
+
+        public double DurationSeconds { get; }
+
         public string OverlayText { get; private set; }
+
         public List<DrawImageTimeRecord> ImagesTimeTable { get; private set; }
     }
 }

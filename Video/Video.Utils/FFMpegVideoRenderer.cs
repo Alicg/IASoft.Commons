@@ -1,99 +1,141 @@
-﻿using Utils.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using FFMpegWrapper;
+using Utils.Extensions;
 
 namespace Video.Utils
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.IO;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     public class FFMpegVideoRenderer : IVideoRenderer
     {
-        private readonly ICollection<VideoRenderOption> _innerCollection = new Collection<VideoRenderOption>();
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-
-        public FFMpegVideoRenderer(int exportGroupId)
-        {
-            ExportGroupId = exportGroupId;
-        }
+        private readonly IList<VideoRenderOption> innerCollection = new List<VideoRenderOption>();
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly FFMpeg ffMpeg = new FFMpeg();
 
         public void Cancel()
         {
-            if(_cancellationTokenSource != null)
-                _cancellationTokenSource.Cancel();
+            this.cancellationTokenSource?.Cancel();
         }
-
-        public int ExportGroupId { get; private set; }
 
         public void AddVideoEpisodes(params VideoRenderOption[] videoRenderOption)
         {
             foreach (var renderOption in videoRenderOption)
             {
-                _innerCollection.Add(renderOption);
+                this.innerCollection.Add(renderOption);
             }
         }
 
-        public void StartRender(string outputFile, string outputExt, Action<string, double> callbackAction, Action<double, string> finishAction)
+        public void StartRender(string outputFile, Action<string, double> callbackAction = null, Action<double, string> finishAction = null)
         {
-            Task.Run(() =>
+            var renderStart = DateTime.Now;
+            // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
+            // Сейчас это вырезать эпизоды, нарисовать по ним текст+штрихи и в конце один раз все склеить.
+            var globalExportProgress = new GlobalExportProgress(this.innerCollection.Count * 2 + 1);
+            this.ffMpeg.LogMessage($"Started rendering of {outputFile}", string.Empty);
+            try
             {
-                var dt = DateTime.Now;
-                var mh = new MediaHandler(VideoUtils.FfmpegPath, VideoUtils.FontsPath);
-                var intermediateCollection = new Collection<string>();
+                if (File.Exists(outputFile))
+                    File.Delete(outputFile);
 
-                try
+                if (this.cancellationTokenSource.Token.IsCancellationRequested)
+                    this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                if (this.innerCollection.Count == 1)
                 {
-                    var predictedTime = 0;
-
-                    if (File.Exists(outputFile))
-                        File.Delete(outputFile);
-
-                    if (_cancellationTokenSource.Token.IsCancellationRequested)
-                        _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var totalProgress = (double)(_innerCollection.Count);
-
-                    foreach (var renderOption in _innerCollection)
-                    {
-                        if (_cancellationTokenSource.Token.IsCancellationRequested)
-                            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                        var intermediateFile = string.Format("{0}{1}", Guid.NewGuid(), outputExt);
-                        var time = predictedTime;
-                        mh.CatAndDrawTextAndDrawImage(renderOption.FilePath, renderOption.Start,
-                            renderOption.End - renderOption.Start, intermediateFile, renderOption.OverlayText, renderOption.ImagesTimeTable,
-                            p => callbackAction(outputFile, (time + 1*p)/totalProgress));
-                        intermediateCollection.Add(intermediateFile);
-                        predictedTime++;
-                        //callbackAction(outputFile, ++predictedTime / totalProgress);
-                    }
-
-                    if (_cancellationTokenSource.Token.IsCancellationRequested)
-                        _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                    mh.Concat(outputFile, intermediateCollection.ToArray());
-
-                    finishAction((DateTime.Now - dt).TotalMilliseconds, null);
+                    this.ffMpeg.CutAndDrawTextAndDrawImage(this.innerCollection[0].FilePath,
+                        this.innerCollection[0].StartSecond,
+                        this.innerCollection[0].DurationSeconds,
+                        outputFile,
+                        this.innerCollection[0].OverlayText,
+                        this.innerCollection[0].ImagesTimeTable,
+                        p => NotifyGlobalProgress(callbackAction, p, globalExportProgress));
                 }
-                catch (Exception ex)
+                else
                 {
-                    finishAction((DateTime.Now - dt).TotalMilliseconds, ex.GetFullMessage());
+                    this.CutAndConcatSeveralEpisodes(outputFile, globalExportProgress, callbackAction);
                 }
-                finally
-                {
-                    foreach (var intermediateFile in intermediateCollection)
-                    {
-                        File.Delete(intermediateFile);
-                    }
-                }
-            }, _cancellationTokenSource.Token);
+
+                finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, null);
+            }
+            catch (Exception ex)
+            {
+                finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, ex.GetFullMessage());
+            }
         }
 
-        public void ClearEpisodes()
+        public async void StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction)
         {
-            throw new NotImplementedException();
+            await Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationTokenSource.Token);
+        }
+
+        private void CutAndConcatSeveralEpisodes(string outputFile,
+            GlobalExportProgress globalExportProgress,
+            Action<string, double> callbackAction = null)
+        {
+            var temporaryPartsToMerge = new List<string>();
+            try
+            {
+                var outputExt = Path.GetExtension(outputFile);
+                foreach (var renderOption in this.innerCollection)
+                {
+                    if (this.cancellationTokenSource.Token.IsCancellationRequested)
+                        this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                    var tempFile = Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{outputExt}");
+
+                    this.ffMpeg.CutAndDrawTextAndDrawImage(renderOption.FilePath,
+                        renderOption.StartSecond,
+                        renderOption.DurationSeconds,
+                        tempFile,
+                        renderOption.OverlayText,
+                        renderOption.ImagesTimeTable,
+                        p => NotifyGlobalProgress(callbackAction, p, globalExportProgress));
+
+                    temporaryPartsToMerge.Add(tempFile);
+                    globalExportProgress.IncreaseOperationsDone();
+                }
+
+                if (this.cancellationTokenSource.Token.IsCancellationRequested)
+                    this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                this.ffMpeg.Concat(outputFile, temporaryPartsToMerge.ToArray());
+            }
+            finally
+            {
+                foreach (var intermediateFile in temporaryPartsToMerge)
+                {
+                    File.Delete(intermediateFile);
+                }
+            }
+        }
+
+        private static void NotifyGlobalProgress(Action<string, double> callbackAction, double currentProgressPercent, GlobalExportProgress globalExportProgress)
+        {
+            var globalProgress = currentProgressPercent / globalExportProgress.TotalOperationsExpected + globalExportProgress.GlobalProgress;
+            callbackAction?.Invoke(null, globalProgress);
+        }
+
+        private class GlobalExportProgress
+        {
+            private readonly int totalOperationsExpected;
+
+            private int operationsDone;
+
+            public GlobalExportProgress(int totalOperationsExpected)
+            {
+                this.totalOperationsExpected = totalOperationsExpected;
+            }
+
+            public void IncreaseOperationsDone()
+            {
+                this.operationsDone++;
+            }
+
+            public int TotalOperationsExpected => this.totalOperationsExpected;
+
+            public double GlobalProgress => (double)this.operationsDone / this.totalOperationsExpected;
         }
     }
 }

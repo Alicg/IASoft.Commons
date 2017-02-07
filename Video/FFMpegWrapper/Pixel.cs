@@ -2,15 +2,15 @@
 {
     using System.Drawing;
 
-    public class Pixel
+    internal class Pixel
     {
         public Pixel(int startSecond, int endSecond, int x, int y, Color color)
         {
-            X = x;
-            Y = y;
-            StartSecond = startSecond;
-            EndSecond = endSecond;
-            Color = color;
+            this.X = x;
+            this.Y = y;
+            this.StartSecond = startSecond;
+            this.EndSecond = endSecond;
+            this.Color = color;
         }
 
         public int X { get; private set; }

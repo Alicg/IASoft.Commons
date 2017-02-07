@@ -1,13 +1,12 @@
-﻿namespace Video.Utils
-{
-    using System;
+﻿using System;
 
-    public interface IVideoRenderer
+namespace Video.Utils
+{
+    internal interface IVideoRenderer
     {
         void AddVideoEpisodes(params VideoRenderOption[] videoRenderOption);
-        void StartRender(string outputFile, string outputExt, Action<string, double> callbackAction, Action<double, string> finishAction);
-        void ClearEpisodes();
+        void StartRender(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction);
+        void StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction);
         void Cancel();
-        int ExportGroupId { get; }
     }
 }
