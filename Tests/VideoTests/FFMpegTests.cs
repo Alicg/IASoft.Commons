@@ -26,7 +26,7 @@ namespace VideoTests
         {
             const string OutputFile = OutputFolder + "Simple20SecCut_Medium.avi";
             var ffmpeg = new FFMpeg();
-            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", OutputFile);
+            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", OutputFile, GlobalExportProgress.Empty);
 
             Assert.IsTrue(File.Exists(OutputFile));
         }
@@ -39,11 +39,11 @@ namespace VideoTests
             const string FileToConcat2 = OutputFolder + "2EpisodeToConcat_SuperFast.avi";
             const string FileToConcat3 = OutputFolder + "3EpisodeToConcat_SuperFast.avi";
             var ffmpeg = new FFMpeg(PresetParameters.SuperFast);
-            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat1);
-            ffmpeg.Cut(300, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat2);
-            ffmpeg.Cut(600, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat3);
+            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat1, GlobalExportProgress.Empty);
+            ffmpeg.Cut(300, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat2, GlobalExportProgress.Empty);
+            ffmpeg.Cut(600, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat3, GlobalExportProgress.Empty);
 
-            ffmpeg.Concat(OutputFile, FileToConcat1, FileToConcat2, FileToConcat3);
+            ffmpeg.Concat(OutputFile, GlobalExportProgress.Empty, FileToConcat1, FileToConcat2, FileToConcat3);
 
             Assert.IsTrue(File.Exists(OutputFile));
         }
@@ -57,7 +57,7 @@ namespace VideoTests
             var images = new List<DrawImageTimeRecord>();
             images.Add(new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4));
 
-            ffmpeg.DrawImage(SampleFiles.SampleVideo_5sec, images, OutputFile);
+            ffmpeg.DrawImage(SampleFiles.SampleVideo_5sec, images, OutputFile, GlobalExportProgress.Empty);
 
             Assert.IsTrue(File.Exists(OutputFile));
         }

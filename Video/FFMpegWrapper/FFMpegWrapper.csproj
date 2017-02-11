@@ -54,6 +54,7 @@
     <Compile Include="FFMpegImageQuality.cs" />
     <Compile Include="FFMpegVideoInfo.cs" />
     <Compile Include="FFMpeg.cs" />
+    <Compile Include="IGlobalExportProgress.cs" />
     <Compile Include="Pixel.cs" />
     <Compile Include="PresetParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

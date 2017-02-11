@@ -37,7 +37,7 @@ namespace Video.Utils
             });
         }
 
-        public void StartRender(
+        public void RenderEpisodes(
             VideoRenderOption[] renderOptions,
             string outputFile,
             Action<string, double> callbackAction = null,

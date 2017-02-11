@@ -10,7 +10,11 @@ namespace Video.Utils
 {
     public class FFMpegVideoRenderer : IVideoRenderer
     {
-        private readonly IList<VideoRenderOption> innerCollection = new List<VideoRenderOption>();
+        /// <summary>
+        /// Опции для вырезания и обработки каждого эпизода.
+        /// </summary>
+        private readonly IList<VideoRenderOption> videoRenderOptions = new List<VideoRenderOption>();
+
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private readonly FFMpeg ffMpeg = new FFMpeg();
 
@@ -23,7 +27,7 @@ namespace Video.Utils
         {
             foreach (var renderOption in videoRenderOption)
             {
-                this.innerCollection.Add(renderOption);
+                this.videoRenderOptions.Add(renderOption);
             }
         }
 
@@ -32,7 +36,7 @@ namespace Video.Utils
             var renderStart = DateTime.Now;
             // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
             // Сейчас это вырезать эпизоды, нарисовать по ним текст+штрихи и в конце один раз все склеить.
-            var globalExportProgress = new GlobalExportProgress(this.innerCollection.Count * 2 + 1);
+            var globalExportProgress = GlobalExportProgress.BuildFromRenderOptions(this.videoRenderOptions, callbackAction);
             this.ffMpeg.LogMessage($"Started rendering of {outputFile}", string.Empty);
             try
             {
@@ -42,19 +46,20 @@ namespace Video.Utils
                 if (this.cancellationTokenSource.Token.IsCancellationRequested)
                     this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                if (this.innerCollection.Count == 1)
+                if (this.videoRenderOptions.Count == 1)
                 {
-                    this.ffMpeg.CutAndDrawTextAndDrawImage(this.innerCollection[0].FilePath,
-                        this.innerCollection[0].StartSecond,
-                        this.innerCollection[0].DurationSeconds,
+                    this.ffMpeg.CutAndDrawTextAndDrawImage(
+                        this.videoRenderOptions[0].FilePath,
+                        this.videoRenderOptions[0].StartSecond,
+                        this.videoRenderOptions[0].DurationSeconds,
                         outputFile,
-                        this.innerCollection[0].OverlayText,
-                        this.innerCollection[0].ImagesTimeTable,
-                        p => NotifyGlobalProgress(callbackAction, p, globalExportProgress));
+                        this.videoRenderOptions[0].OverlayText,
+                        this.videoRenderOptions[0].ImagesTimeTable,
+                        globalExportProgress);
                 }
                 else
                 {
-                    this.CutAndConcatSeveralEpisodes(outputFile, globalExportProgress, callbackAction);
+                    this.CutAndConcatSeveralEpisodes(outputFile, globalExportProgress);
                 }
 
                 finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, null);
@@ -70,37 +75,35 @@ namespace Video.Utils
             await Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationTokenSource.Token);
         }
 
-        private void CutAndConcatSeveralEpisodes(string outputFile,
-            GlobalExportProgress globalExportProgress,
-            Action<string, double> callbackAction = null)
+        private void CutAndConcatSeveralEpisodes(string outputFile, GlobalExportProgress globalExportProgress)
         {
             var temporaryPartsToMerge = new List<string>();
             try
             {
                 var outputExt = Path.GetExtension(outputFile);
-                foreach (var renderOption in this.innerCollection)
+                foreach (var renderOption in this.videoRenderOptions)
                 {
                     if (this.cancellationTokenSource.Token.IsCancellationRequested)
                         this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                     var tempFile = Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{outputExt}");
 
-                    this.ffMpeg.CutAndDrawTextAndDrawImage(renderOption.FilePath,
+                    this.ffMpeg.CutAndDrawTextAndDrawImage(
+                        renderOption.FilePath,
                         renderOption.StartSecond,
                         renderOption.DurationSeconds,
                         tempFile,
                         renderOption.OverlayText,
                         renderOption.ImagesTimeTable,
-                        p => NotifyGlobalProgress(callbackAction, p, globalExportProgress));
+                        globalExportProgress);
 
                     temporaryPartsToMerge.Add(tempFile);
-                    globalExportProgress.IncreaseOperationsDone();
                 }
 
                 if (this.cancellationTokenSource.Token.IsCancellationRequested)
                     this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                this.ffMpeg.Concat(outputFile, temporaryPartsToMerge.ToArray());
+                this.ffMpeg.Concat(outputFile, globalExportProgress, temporaryPartsToMerge.ToArray());
             }
             finally
             {
@@ -109,33 +112,6 @@ namespace Video.Utils
                     File.Delete(intermediateFile);
                 }
             }
-        }
-
-        private static void NotifyGlobalProgress(Action<string, double> callbackAction, double currentProgressPercent, GlobalExportProgress globalExportProgress)
-        {
-            var globalProgress = currentProgressPercent / globalExportProgress.TotalOperationsExpected + globalExportProgress.GlobalProgress;
-            callbackAction?.Invoke(null, globalProgress);
-        }
-
-        private class GlobalExportProgress
-        {
-            private readonly int totalOperationsExpected;
-
-            private int operationsDone;
-
-            public GlobalExportProgress(int totalOperationsExpected)
-            {
-                this.totalOperationsExpected = totalOperationsExpected;
-            }
-
-            public void IncreaseOperationsDone()
-            {
-                this.operationsDone++;
-            }
-
-            public int TotalOperationsExpected => this.totalOperationsExpected;
-
-            public double GlobalProgress => (double)this.operationsDone / this.totalOperationsExpected;
         }
     }
 }

@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FFMpegVideoRenderer.cs" />
+    <Compile Include="GlobalExportProgress.cs" />
     <Compile Include="IVideoRenderer.cs" />
     <Compile Include="IVideoUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -80,6 +81,10 @@
     <ProjectReference Include="..\FFMpegWrapper\FFMpegWrapper.csproj">
       <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>
       <Name>FFMpegWrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\YoutubeWrapper\YoutubeWrapper.csproj">
+      <Project>{F3256F5F-19EA-4C4D-91D9-1675591BEB30}</Project>
+      <Name>YoutubeWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

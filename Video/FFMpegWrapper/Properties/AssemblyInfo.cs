@@ -2,9 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
 
-[assembly: AllowPartiallyTrustedCallers]
 [assembly: AssemblyCompany("MediaSoftPro Inc")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright ©  2010")]

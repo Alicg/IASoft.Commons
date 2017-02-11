@@ -41,7 +41,7 @@ namespace FFMpegWrapper
             this.fontsPath = fontsPath;
         }
 
-        public void Concat(string outputFile, params string[] inputFiles)
+        public void Concat(string outputFile, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
         {
             EnsureFileDoesNotExist(outputFile);
             var result = new FFMpegCommandBuilder()
@@ -51,12 +51,14 @@ namespace FFMpegWrapper
                 .OutputTune("fastdecode")
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CONCAT", result);
+            globalExportProgress?.IncreaseOperationsDone();
         }
 
-        public void Cut(double start, double duration, string inputFile, string outputFile)
+        public void Cut(double start, double duration, string inputFile, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
             var result = new FFMpegCommandBuilder()
@@ -68,61 +70,14 @@ namespace FFMpegWrapper
                 .OutputTune("fastdecode")
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CUT", result);
+            globalExportProgress?.IncreaseOperationsDone();
         }
 
-        public void CutAndDrawText(string inputFile, int start, int end, string outputFile, string overlayText)
-        {
-            EnsureFileDoesNotExist(outputFile);
-            if (overlayText == null)
-            {
-                this.Cut(start, end, inputFile, outputFile);
-                return;
-            }
-            var lastDot = inputFile.LastIndexOf('.');
-            var inputExt = inputFile.Substring(lastDot);
-            var intermediateFile = GetIntermediateFile(inputExt);
-            this.Cut(start, end, inputFile, intermediateFile);
-            this.DrawText(intermediateFile, overlayText, outputFile);
-            File.Delete(intermediateFile);
-        }
-
-
-        public void CutAndDrawTextAndDrawImage(string inputFile, double start, double end, string outputFile, string overlayText, List<DrawImageTimeRecord> imagesTimeTable, Action<double> progressAction)
-        {
-            EnsureFileDoesNotExist(outputFile);
-            const string ExtensionForResultFile = ".avi";
-            var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
-            if (overlayText == null && !imagesExist)
-            {
-                this.Cut(start, end, inputFile, outputFile);
-                progressAction(1);//100% progress
-                return;
-            }
-            var intermediateFile1 = GetIntermediateFile(ExtensionForResultFile);
-
-            this.Cut(start, end, inputFile, intermediateFile1);
-            progressAction(0.5);//50% progress
-
-            if (overlayText != null)
-            {
-                var intermediateFile2 = imagesExist ? GetIntermediateFile(ExtensionForResultFile) : outputFile;
-                this.DrawText(intermediateFile1, overlayText, intermediateFile2);
-                progressAction(0.75);//75% progress
-                File.Delete(intermediateFile1);
-                intermediateFile1 = intermediateFile2;
-            }
-            if (imagesExist)
-            {
-                this.DrawImage(intermediateFile1, imagesTimeTable, outputFile);
-                File.Delete(intermediateFile1);
-            }
-            progressAction(1);//100% progress
-        }
-
-        public void DrawImage(string inputFile, List<DrawImageTimeRecord> imagesTimeTable, string outputFile)
+        public void DrawImage(string inputFile, List<DrawImageTimeRecord> imagesTimeTable, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             if (!imagesTimeTable.Any())
                 return;
@@ -133,12 +88,14 @@ namespace FFMpegWrapper
                 .OutputVideoCodec("libx264")
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawImage", result);
+            globalExportProgress?.IncreaseOperationsDone();
         }
 
-        public void DrawText(string inputFile, string overlayText, string outputFile)
+        public void DrawText(string inputFile, string overlayText, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
             const int FontSize = 30;
@@ -152,9 +109,63 @@ namespace FFMpegWrapper
                 .OutputPreset(this.presetParameters)
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawText", result);
+            globalExportProgress?.IncreaseOperationsDone();
+        }
+
+        public void CutAndDrawText(string inputFile, int start, int end, string outputFile, string overlayText, IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            if (string.IsNullOrEmpty(overlayText))
+            {
+                this.Cut(start, end, inputFile, outputFile, globalExportProgress);
+                return;
+            }
+            var lastDot = inputFile.LastIndexOf('.');
+            var inputExt = inputFile.Substring(lastDot);
+            var intermediateFile = GetIntermediateFile(inputExt);
+            this.Cut(start, end, inputFile, intermediateFile, globalExportProgress);
+            this.DrawText(intermediateFile, overlayText, outputFile, globalExportProgress);
+            File.Delete(intermediateFile);
+        }
+
+
+        public void CutAndDrawTextAndDrawImage(
+            string inputFile,
+            double start,
+            double end,
+            string outputFile,
+            string overlayText,
+            List<DrawImageTimeRecord> imagesTimeTable,
+            IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            const string ExtensionForResultFile = ".avi";
+            var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
+            if (string.IsNullOrEmpty(overlayText) && !imagesExist)
+            {
+                this.Cut(start, end, inputFile, outputFile, globalExportProgress);
+                return;
+            }
+            var intermediateFile1 = GetIntermediateFile(ExtensionForResultFile);
+
+            this.Cut(start, end, inputFile, intermediateFile1, globalExportProgress);
+
+            if (!string.IsNullOrEmpty(overlayText))
+            {
+                var intermediateFile2 = imagesExist ? GetIntermediateFile(ExtensionForResultFile) : outputFile;
+                this.DrawText(intermediateFile1, overlayText, intermediateFile2, globalExportProgress);
+                File.Delete(intermediateFile1);
+                intermediateFile1 = intermediateFile2;
+            }
+            if (imagesExist)
+            {
+                this.DrawImage(intermediateFile1, imagesTimeTable, outputFile, globalExportProgress);
+                File.Delete(intermediateFile1);
+            }
         }
 
         public byte[] GetBitmapFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
@@ -197,6 +208,7 @@ namespace FFMpegWrapper
                 Monitor.Exit(LogFile);
             }
         }
+
 
         private static void EnsureFileDoesNotExist(string filePath)
         {

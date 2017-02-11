@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using FFMpegWrapper;
 using NUnit.Framework;
 using Video.Utils;
 
@@ -78,6 +80,46 @@ namespace VideoTests
 
             var regex = new Regex("\r\n-----------*.?--------------\r\n");
             Assert.AreEqual(6, regex.Matches(logText).Count);
+        }
+
+        [Test]
+        public void Cut1EpisodeWithText_FinishCallback_Test()
+        {
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, "OverlayText", null));
+            double currentProgress = 0;
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut1Episode_WithText_NoImages_FinishCallbackTest.avi",
+                (fileName, percent) =>
+                {
+                    currentProgress = percent;
+                },
+                (totalDuration, fileName) =>
+                {
+                    Assert.AreEqual(1, currentProgress);
+                });
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut1Episode_WithText_NoImages_FinishCallbackTest.avi"));
+        }
+
+        [Test]
+        public void Cut2SameEpisodes_WithText_OneImages_FinishCallback_Test()
+        {
+            var sw = Stopwatch.StartNew();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            var images = new List<DrawImageTimeRecord> {new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4)};
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "First episode", images));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "", new List<DrawImageTimeRecord>()));
+            double currentProgress = 0;
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi",
+                (fileName, percent) =>
+                {
+                    currentProgress = percent;
+                },
+                (totalDuration, fileName) =>
+                {
+                    Assert.AreEqual(1, currentProgress);
+                });
+            sw.Stop();
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi"));
         }
 
         [TearDown]

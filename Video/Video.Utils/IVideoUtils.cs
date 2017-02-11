@@ -12,7 +12,7 @@ namespace Video.Utils
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position);
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize);
 
-        void StartRender(VideoRenderOption[] renderOptions, string outputFile, Action<string, double> callbackAction = null, Action<double, string> finishAction = null);
+        void RenderEpisodes(VideoRenderOption[] renderOptions, string outputFile, Action<string, double> callbackAction = null, Action<double, string> finishAction = null);
 
         void EnableDebugMode();
         void DisableDebugMode();

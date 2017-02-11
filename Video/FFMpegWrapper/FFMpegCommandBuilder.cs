@@ -9,6 +9,7 @@ namespace FFMpegWrapper
 {
     public class FFMpegCommandBuilder
     {
+        private Action<double> progressCallback;
         private readonly StringBuilder parametersAccumulator = new StringBuilder();
 
         private static readonly IDictionary<PresetParameters, string> PresetsDictionary = new Dictionary<PresetParameters, string>
@@ -138,9 +139,15 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder WithProgressCallback(Action<double> progressCallback)
+        {
+            this.progressCallback = progressCallback;
+            return this;
+        }
+
         public FFMpegCommand BuildCommand(string pathToFfMpegExe)
         {
-            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles);
+            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback);
         }
 
         private string GetIntermediateFile(string ext)
