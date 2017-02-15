@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
 
@@ -12,7 +13,12 @@ namespace Video.Utils
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position);
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize);
 
-        void RenderEpisodes(VideoRenderOption[] renderOptions, string outputFile, Action<string, double> callbackAction = null, Action<double, string> finishAction = null);
+        Task RenderEpisodesAsync(
+            VideoRenderOption[] renderOptions,
+            string outputFile,
+            CancellationTokenSource cancellationTokenSource = null,
+            Action<string, double> callbackAction = null,
+            Action<double, string> finishAction = null);
 
         void EnableDebugMode();
         void DisableDebugMode();

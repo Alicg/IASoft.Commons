@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Utils.Extensions;
@@ -12,14 +13,16 @@ namespace FFMpegWrapper
     public class FFMpeg
     {
         private readonly PresetParameters presetParameters;
+        private readonly IObservable<double> stopSignal;
         private readonly string pathToFfMpegExe;
         private readonly string fontsPath;
         public static string LogFile = "ffmpegwrapper.log";
         public static bool DebugModeEnabled = false;
 
-        public FFMpeg(PresetParameters presetParameters = PresetParameters.Medium)
+        public FFMpeg(PresetParameters presetParameters = PresetParameters.Medium, IObservable<double> stopSignal = null)
         {
             this.presetParameters = presetParameters;
+            this.stopSignal = stopSignal ?? Observable.Empty<double>();
             const string AppDir = "";
             this.pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
             if (!File.Exists(this.pathToFfMpegExe))
@@ -52,10 +55,11 @@ namespace FFMpegWrapper
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CONCAT", result);
-            globalExportProgress?.IncreaseOperationsDone();
+            globalExportProgress.IncreaseOperationsDone();
         }
 
         public void Cut(double start, double duration, string inputFile, string outputFile, IGlobalExportProgress globalExportProgress)
@@ -71,10 +75,11 @@ namespace FFMpegWrapper
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CUT", result);
-            globalExportProgress?.IncreaseOperationsDone();
+            globalExportProgress.IncreaseOperationsDone();
         }
 
         public void DrawImage(string inputFile, List<DrawImageTimeRecord> imagesTimeTable, string outputFile, IGlobalExportProgress globalExportProgress)
@@ -89,10 +94,11 @@ namespace FFMpegWrapper
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawImage", result);
-            globalExportProgress?.IncreaseOperationsDone();
+            globalExportProgress.IncreaseOperationsDone();
         }
 
         public void DrawText(string inputFile, string overlayText, string outputFile, IGlobalExportProgress globalExportProgress)
@@ -110,10 +116,11 @@ namespace FFMpegWrapper
                 .WithFlags("+ildct+ilme")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
                 .BuildCommand(this.pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawText", result);
-            globalExportProgress?.IncreaseOperationsDone();
+            globalExportProgress.IncreaseOperationsDone();
         }
 
         public void CutAndDrawText(string inputFile, int start, int end, string outputFile, string overlayText, IGlobalExportProgress globalExportProgress)
@@ -131,43 +138,7 @@ namespace FFMpegWrapper
             this.DrawText(intermediateFile, overlayText, outputFile, globalExportProgress);
             File.Delete(intermediateFile);
         }
-
-
-        public void CutAndDrawTextAndDrawImage(
-            string inputFile,
-            double start,
-            double end,
-            string outputFile,
-            string overlayText,
-            List<DrawImageTimeRecord> imagesTimeTable,
-            IGlobalExportProgress globalExportProgress)
-        {
-            EnsureFileDoesNotExist(outputFile);
-            const string ExtensionForResultFile = ".avi";
-            var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
-            if (string.IsNullOrEmpty(overlayText) && !imagesExist)
-            {
-                this.Cut(start, end, inputFile, outputFile, globalExportProgress);
-                return;
-            }
-            var intermediateFile1 = GetIntermediateFile(ExtensionForResultFile);
-
-            this.Cut(start, end, inputFile, intermediateFile1, globalExportProgress);
-
-            if (!string.IsNullOrEmpty(overlayText))
-            {
-                var intermediateFile2 = imagesExist ? GetIntermediateFile(ExtensionForResultFile) : outputFile;
-                this.DrawText(intermediateFile1, overlayText, intermediateFile2, globalExportProgress);
-                File.Delete(intermediateFile1);
-                intermediateFile1 = intermediateFile2;
-            }
-            if (imagesExist)
-            {
-                this.DrawImage(intermediateFile1, imagesTimeTable, outputFile, globalExportProgress);
-                File.Delete(intermediateFile1);
-            }
-        }
-
+        
         public byte[] GetBitmapFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
         {
             var intermediateFile = GetIntermediateFile(".jpg");
@@ -208,7 +179,6 @@ namespace FFMpegWrapper
                 Monitor.Exit(LogFile);
             }
         }
-
 
         private static void EnsureFileDoesNotExist(string filePath)
         {

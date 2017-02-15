@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SavedDataStore.cs" />
+    <Compile Include="YoutubeException.cs" />
     <Compile Include="YoutubeFacade.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

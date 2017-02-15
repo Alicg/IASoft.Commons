@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
+using Google.Apis.Upload;
 using Google.Apis.Util;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
@@ -30,9 +31,9 @@ namespace YoutubeWrapper
             this.savedRefreshToken = savedRefreshToken;
         }
 
-        public async Task<string> UploadVideo(string filePath, string title, string description, string playlistName, Action<double, double> progressChanged = null)
+        public string UploadVideo(string filePath, string title, string description, string playlistName, Action<double, double> progressChanged = null)
         {
-            var youtubeService = await this.ConnectToYoutubeService();
+            var youtubeService = this.ConnectToYoutubeService();
 
             var video = new Video
             {
@@ -42,34 +43,97 @@ namespace YoutubeWrapper
             string createdVideoId;
             using (var fileStream = new FileStream(filePath, FileMode.Open))
             {
+                long bytesSent = 0;
                 var videosInsertRequest = youtubeService.Videos.Insert(video, "snippet,status", fileStream, "video/*");
                 if (progressChanged != null)
                 {
                     videosInsertRequest.ProgressChanged +=
-                        progress => progressChanged(videosInsertRequest.ContentStream.Length, progress.BytesSent);
+                        progress =>
+                        {
+                            bytesSent = progress.BytesSent;
+                            progressChanged(videosInsertRequest.ContentStream.Length, progress.BytesSent);
+                        };
                 }
                 const int Kb = 1024;
                 const int MinimumChunkSize = 256 * Kb;
                 videosInsertRequest.ChunkSize = MinimumChunkSize;
-                await videosInsertRequest.UploadAsync();
+                IUploadProgress uploadProgress = null;
+                try
+                {
+                    uploadProgress = videosInsertRequest.Upload();
+                }
+                catch (Exception e)
+                {
+                    var lastException = e;
+                    int maxRetrievesCount = 3;
+                    int retriesCount = 0;
+                    long previousBytesSent = 0;
+                    long minimalKbToProlongUpload = 500;
+                    while (maxRetrievesCount > retriesCount && (uploadProgress == null || uploadProgress.Status != UploadStatus.Completed))
+                    {
+                        retriesCount++;
+                        try
+                        {
+                            uploadProgress = videosInsertRequest.Resume();
+                        }
+                        catch (Exception exception)
+                        {
+                            lastException = exception;
+
+                            // Если мы залили хотябы 500кб с предыдущего разрыва, значит обнуляем счетчик попыток. Так понемногу и всё видео зальём.
+                            if (Math.Abs(bytesSent - previousBytesSent) > minimalKbToProlongUpload)
+                            {
+                                retriesCount = 0;
+                            }
+                            previousBytesSent = bytesSent;
+                            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+                        }
+                    }
+                    if (uploadProgress == null || uploadProgress.Status != UploadStatus.Completed)
+                    {
+                        throw new YoutubeException($"Video upload failed (Retries count = {retriesCount}). See inner exception for details.", lastException);
+                    }
+                }
                 createdVideoId = videosInsertRequest.ResponseBody.Id;
-            }
-            if (createdVideoId == null)
-            {
-                return "Upload failed";
+                if (createdVideoId == null)
+                {
+                    throw new YoutubeException(videosInsertRequest.ResponseBody.Status.UploadStatus);
+                }
             }
             if (playlistName != null)
             {
                 this.AddToPlayList(createdVideoId, playlistName, youtubeService);
             }
-            return $"https://www.youtube.com/watch?v={createdVideoId}";
+            return createdVideoId;
         }
 
-        private async void AddToPlayList(string videoId, string playListName, YouTubeService service)
+        public string DeleteVideo(string videoId)
+        {
+            var youtubeService = this.ConnectToYoutubeService();
+            var deleteRequest = youtubeService.Videos.Delete(videoId);
+            return deleteRequest.Execute();
+        }
+
+        public string GetVideoInfo(string videoId)
+        {
+            var youtubeService = this.ConnectToYoutubeService();
+            var searchRequest = youtubeService.Videos.List("snippet");
+            searchRequest.Id = videoId;
+            var video = searchRequest.Execute().Items.FirstOrDefault();
+            return video?.Id;
+        }
+
+        public string GetFullVideoUrl(string videoId)
+        {
+            return $"https://www.youtube.com/watch?v={videoId}";
+        }
+
+        private void AddToPlayList(string videoId, string playListName, YouTubeService service)
         {
             var playlistRequest = service.Playlists.List("snippet");
             playlistRequest.ChannelId = this.channelId;
-            var allPlaylists = await playlistRequest.ExecuteAsync();
+            playlistRequest.MaxResults = 50;
+            var allPlaylists = playlistRequest.Execute();
             var playlist = allPlaylists.Items.FirstOrDefault(v => v.Snippet.Title == playListName);
             if (playlist == null)
             {
@@ -84,25 +148,29 @@ namespace YoutubeWrapper
                         ResourceId = new ResourceId {Kind = "youtube#video", VideoId = videoId}
                     }
             };
-            await service.PlaylistItems.Insert(newPlaylistItem, "snippet").ExecuteAsync();
+            service.PlaylistItems.Insert(newPlaylistItem, "snippet").Execute();
         }
 
-        private async Task<YouTubeService> ConnectToYoutubeService()
+        private YouTubeService ConnectToYoutubeService()
         {
             if (this.connectedUserCredential == null)
             {
-                this.connectedUserCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                var authorizeTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.Load(this.secretStream).Secrets,
-                    new[] {YouTubeService.Scope.YoutubeUpload},
+                    new[] {YouTubeService.Scope.YoutubeUpload, YouTubeService.Scope.Youtube},
                     Environment.UserName,
                     CancellationToken.None,
                     new SavedDataStore(this.savedRefreshToken.ConvertToUnsecureString())
                 );
+                authorizeTask.Wait();
+                this.connectedUserCredential = authorizeTask.Result;
             }
 
             if (this.connectedUserCredential.Token.IsExpired(SystemClock.Default))
             {
-                if (!await this.connectedUserCredential.RefreshTokenAsync(CancellationToken.None))
+                var refreshTokenTask = this.connectedUserCredential.RefreshTokenAsync(CancellationToken.None);
+                refreshTokenTask.Wait();
+                if (!refreshTokenTask.Result)
                 {
                     throw new InvalidOperationException("Access token was expired and new one can't be requested due.");
                 }
@@ -111,6 +179,7 @@ namespace YoutubeWrapper
             var youtubeService = new YouTubeService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = this.connectedUserCredential,
+                GZipEnabled = true,
                 ApplicationName = this.applicationName
             });
 

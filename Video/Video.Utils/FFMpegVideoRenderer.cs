@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
@@ -10,17 +13,24 @@ namespace Video.Utils
 {
     public class FFMpegVideoRenderer : IVideoRenderer
     {
+        private readonly CancellationToken cancellationToken;
+
         /// <summary>
         /// Опции для вырезания и обработки каждого эпизода.
         /// </summary>
         private readonly IList<VideoRenderOption> videoRenderOptions = new List<VideoRenderOption>();
 
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private readonly FFMpeg ffMpeg = new FFMpeg();
+        private readonly FFMpeg ffMpeg;
 
-        public void Cancel()
+        public FFMpegVideoRenderer(CancellationTokenSource cancellationTokenSource = null)
         {
-            this.cancellationTokenSource?.Cancel();
+            this.cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
+            var subject = new Subject<double>();
+
+            // ReSharper disable once ImpureMethodCallOnReadonlyValueField
+            // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
+            this.cancellationToken.Register(() => subject.OnNext(0));
+            this.ffMpeg = new FFMpeg(PresetParameters.Medium, subject.AsObservable());
         }
 
         public void AddVideoEpisodes(params VideoRenderOption[] videoRenderOption)
@@ -41,14 +51,18 @@ namespace Video.Utils
             try
             {
                 if (File.Exists(outputFile))
+                {
                     File.Delete(outputFile);
+                }
 
-                if (this.cancellationTokenSource.Token.IsCancellationRequested)
-                    this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                if (this.cancellationToken.IsCancellationRequested)
+                {
+                    this.cancellationToken.ThrowIfCancellationRequested();
+                }
 
                 if (this.videoRenderOptions.Count == 1)
                 {
-                    this.ffMpeg.CutAndDrawTextAndDrawImage(
+                    this.CutAndDrawTextAndDrawImage(
                         this.videoRenderOptions[0].FilePath,
                         this.videoRenderOptions[0].StartSecond,
                         this.videoRenderOptions[0].DurationSeconds,
@@ -70,9 +84,9 @@ namespace Video.Utils
             }
         }
 
-        public async void StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction)
+        public Task StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction)
         {
-            await Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationTokenSource.Token);
+            return Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationToken);
         }
 
         private void CutAndConcatSeveralEpisodes(string outputFile, GlobalExportProgress globalExportProgress)
@@ -83,12 +97,12 @@ namespace Video.Utils
                 var outputExt = Path.GetExtension(outputFile);
                 foreach (var renderOption in this.videoRenderOptions)
                 {
-                    if (this.cancellationTokenSource.Token.IsCancellationRequested)
-                        this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    if (this.cancellationToken.IsCancellationRequested)
+                        this.cancellationToken.ThrowIfCancellationRequested();
 
-                    var tempFile = Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{outputExt}");
+                    var tempFile = GetIntermediateFile(outputExt);
 
-                    this.ffMpeg.CutAndDrawTextAndDrawImage(
+                    this.CutAndDrawTextAndDrawImage(
                         renderOption.FilePath,
                         renderOption.StartSecond,
                         renderOption.DurationSeconds,
@@ -100,8 +114,8 @@ namespace Video.Utils
                     temporaryPartsToMerge.Add(tempFile);
                 }
 
-                if (this.cancellationTokenSource.Token.IsCancellationRequested)
-                    this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                if (this.cancellationToken.IsCancellationRequested)
+                    this.cancellationToken.ThrowIfCancellationRequested();
 
                 this.ffMpeg.Concat(outputFile, globalExportProgress, temporaryPartsToMerge.ToArray());
             }
@@ -112,6 +126,54 @@ namespace Video.Utils
                     File.Delete(intermediateFile);
                 }
             }
+        }
+
+        public void CutAndDrawTextAndDrawImage(
+            string inputFile,
+            double start,
+            double end,
+            string outputFile,
+            string overlayText,
+            List<DrawImageTimeRecord> imagesTimeTable,
+            IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            const string ExtensionForResultFile = ".avi";
+            var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
+            if (string.IsNullOrEmpty(overlayText) && !imagesExist)
+            {
+                this.ffMpeg.Cut(start, end, inputFile, outputFile, globalExportProgress);
+                return;
+            }
+            var intermediateFile1 = GetIntermediateFile(ExtensionForResultFile);
+
+            this.ffMpeg.Cut(start, end, inputFile, intermediateFile1, globalExportProgress);
+
+            if (!string.IsNullOrEmpty(overlayText))
+            {
+                var intermediateFile2 = imagesExist ? GetIntermediateFile(ExtensionForResultFile) : outputFile;
+                this.ffMpeg.DrawText(intermediateFile1, overlayText, intermediateFile2, globalExportProgress);
+                File.Delete(intermediateFile1);
+                intermediateFile1 = intermediateFile2;
+            }
+            if (imagesExist)
+            {
+                this.ffMpeg.DrawImage(intermediateFile1, imagesTimeTable, outputFile, globalExportProgress);
+                File.Delete(intermediateFile1);
+            }
+        }
+
+        private static void EnsureFileDoesNotExist(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        private static string GetIntermediateFile(string ext)
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{ext}");
         }
     }
 }

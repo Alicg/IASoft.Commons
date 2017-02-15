@@ -2,36 +2,39 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using Utils.Management;
 
 namespace FFMpegWrapper
 {
     public class FFMpegCommand
     {
-        private readonly IList<string> dependentFilesToDelete = new string[0];
+        private readonly IList<string> dependentFilesToDelete;
         private readonly Action<double> progressCallback;
+        private readonly IObservable<double> stopSignal;
         private readonly string pathToFfMpegExe;
         private readonly string command;
 
         private TimeSpan commandDuration = TimeSpan.Zero;
 
         public FFMpegCommand(string pathToFfMpegExe, string command)
+            : this(pathToFfMpegExe, command, new string[0])
         {
-            this.pathToFfMpegExe = pathToFfMpegExe;
-            this.command = command;
         }
 
         public FFMpegCommand(string pathToFfMpegExe, string command, IList<string> dependentFilesToDelete)
-            : this(pathToFfMpegExe, command)
+            : this(pathToFfMpegExe, command, dependentFilesToDelete, null, Observable.Empty<double>())
         {
-            this.dependentFilesToDelete = dependentFilesToDelete;
         }
 
-        public FFMpegCommand(string pathToFfMpegExe, string command, IList<string> dependentFilesToDelete, Action<double> progressCallback)
-            : this(pathToFfMpegExe, command)
+        public FFMpegCommand(string pathToFfMpegExe, string command, IList<string> dependentFilesToDelete, Action<double> progressCallback, IObservable<double> stopSignal)
         {
+            this.pathToFfMpegExe = pathToFfMpegExe;
+            this.command = command;
             this.dependentFilesToDelete = dependentFilesToDelete;
             this.progressCallback = progressCallback;
+            this.stopSignal = stopSignal;
         }
 
         public string Execute()
@@ -62,11 +65,16 @@ namespace FFMpegWrapper
                 fullLog += args.Data;
                 this.NotifyProgressChanged(args.Data);
             };
-            process.Start();
-            process.PriorityClass = ProcessPriorityClass.RealTime;
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
+
+            using (this.stopSignal.Subscribe(v => process.Kill()))
+            {
+                process.Start();
+                process.PriorityClass = ProcessPriorityClass.High;
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit();
+            }
+
             if (!process.HasExited)
             {
                 process.Kill();
@@ -105,7 +113,8 @@ namespace FFMpegWrapper
                     }
                     else
                     {
-                        currentProgress = progressInSeconds.TotalSeconds / this.commandDuration.TotalSeconds;
+                        // FFMpeg может долго отдавать нулевой прогресс, но если операция началась будем отдавать хотя бы о 10% текущей операции.
+                        currentProgress = Math.Max(0.1, progressInSeconds.TotalSeconds / this.commandDuration.TotalSeconds);
                     }
                     this.progressCallback(currentProgress);
                 }

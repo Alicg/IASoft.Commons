@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
 
@@ -37,18 +38,19 @@ namespace Video.Utils
             });
         }
 
-        public void RenderEpisodes(
+        public Task RenderEpisodesAsync(
             VideoRenderOption[] renderOptions,
             string outputFile,
+            CancellationTokenSource cancellationTokenSource = null,
             Action<string, double> callbackAction = null,
             Action<double, string> finishAction = null)
         {
-            var renderer = new FFMpegVideoRenderer();
+            var renderer = new FFMpegVideoRenderer(cancellationTokenSource);
             foreach (var renderOption in renderOptions)
             {
                 renderer.AddVideoEpisodes(renderOption);
             }
-            renderer.StartRenderAsync(outputFile, callbackAction, finishAction);
+            return renderer.StartRenderAsync(outputFile, callbackAction, finishAction);
         }
 
         public void EnableDebugMode()

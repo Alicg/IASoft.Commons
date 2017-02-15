@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Video.Utils
 {
@@ -6,7 +7,6 @@ namespace Video.Utils
     {
         void AddVideoEpisodes(params VideoRenderOption[] videoRenderOption);
         void StartRender(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction);
-        void StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction);
-        void Cancel();
+        Task StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction);
     }
 }

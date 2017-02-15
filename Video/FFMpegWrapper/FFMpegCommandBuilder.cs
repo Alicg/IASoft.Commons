@@ -20,6 +20,7 @@ namespace FFMpegWrapper
         };
 
         private readonly IList<string> temporaryFiles = new List<string>();
+        private IObservable<double> stopSignal;
 
         public FFMpegCommandBuilder StartFrom(double startSecond)
         {
@@ -145,9 +146,15 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder WithStopSignal(IObservable<double> stopSignal)
+        {
+            this.stopSignal = stopSignal;
+            return this;
+        }
+
         public FFMpegCommand BuildCommand(string pathToFfMpegExe)
         {
-            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback);
+            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback, this.stopSignal);
         }
 
         private string GetIntermediateFile(string ext)
