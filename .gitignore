@@ -5,3 +5,7 @@ packages
 /DALUtils.EF/*.DotSettings
 ReleaseBinaries
 artifacts
+*.DotSettings
+*.user
+/.idea
+*.vspscc

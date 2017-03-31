@@ -43,7 +43,7 @@ namespace Video.Utils
             string outputFile,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double> callbackAction = null,
-            Action<double, string> finishAction = null)
+            Action<double, Exception> finishAction = null)
         {
             var renderer = new FFMpegVideoRenderer(cancellationTokenSource);
             foreach (var renderOption in renderOptions)

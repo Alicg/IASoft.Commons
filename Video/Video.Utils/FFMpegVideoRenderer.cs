@@ -7,7 +7,6 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
-using Utils.Extensions;
 
 namespace Video.Utils
 {
@@ -41,7 +40,7 @@ namespace Video.Utils
             }
         }
 
-        public void StartRender(string outputFile, Action<string, double> callbackAction = null, Action<double, string> finishAction = null)
+        public void StartRender(string outputFile, Action<string, double> callbackAction = null, Action<double, Exception> finishAction = null)
         {
             var renderStart = DateTime.Now;
             // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
@@ -80,11 +79,11 @@ namespace Video.Utils
             }
             catch (Exception ex)
             {
-                finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, ex.GetFullMessage());
+                finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, ex);
             }
         }
 
-        public Task StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, string> finishAction)
+        public Task StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, Exception> finishAction)
         {
             return Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationToken);
         }

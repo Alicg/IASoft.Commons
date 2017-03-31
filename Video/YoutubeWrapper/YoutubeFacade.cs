@@ -16,22 +16,30 @@ namespace YoutubeWrapper
 {
     public class YoutubeFacade
     {
-        private readonly Stream secretStream;
+        private readonly string clientId;
+        private readonly string clientSecret;
         private readonly string applicationName;
         private readonly string channelId;
         private readonly SecureString savedRefreshToken;
 
         private UserCredential connectedUserCredential;
 
-        public YoutubeFacade(Stream secretStream, string applicationName, string channelId, SecureString savedRefreshToken)
+        public YoutubeFacade(string clientId, string clientSecret, string applicationName, string channelId, SecureString savedRefreshToken)
         {
-            this.secretStream = secretStream;
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
             this.applicationName = applicationName;
             this.channelId = channelId;
             this.savedRefreshToken = savedRefreshToken;
         }
 
-        public string UploadVideo(string filePath, string title, string description, string playlistName, Action<double, double> progressChanged = null)
+        public async Task<string> UploadVideo(
+            string filePath,
+            string title,
+            string description,
+            string playlistName,
+            CancellationToken cancellationToken,
+            Action<double, double> progressChanged = null)
         {
             var youtubeService = this.ConnectToYoutubeService();
 
@@ -60,7 +68,11 @@ namespace YoutubeWrapper
                 IUploadProgress uploadProgress = null;
                 try
                 {
-                    uploadProgress = videosInsertRequest.Upload();
+                    uploadProgress = await videosInsertRequest.UploadAsync(cancellationToken);
+                }
+                catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
@@ -74,7 +86,7 @@ namespace YoutubeWrapper
                         retriesCount++;
                         try
                         {
-                            uploadProgress = videosInsertRequest.Resume();
+                            uploadProgress = await videosInsertRequest.ResumeAsync(cancellationToken);
                         }
                         catch (Exception exception)
                         {
@@ -86,7 +98,7 @@ namespace YoutubeWrapper
                                 retriesCount = 0;
                             }
                             previousBytesSent = bytesSent;
-                            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+                            Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).Wait(cancellationToken);
                         }
                     }
                     if (uploadProgress == null || uploadProgress.Status != UploadStatus.Completed)
@@ -123,11 +135,6 @@ namespace YoutubeWrapper
             return video?.Id;
         }
 
-        public string GetFullVideoUrl(string videoId)
-        {
-            return $"https://www.youtube.com/watch?v={videoId}";
-        }
-
         private void AddToPlayList(string videoId, string playListName, YouTubeService service)
         {
             var playlistRequest = service.Playlists.List("snippet");
@@ -156,7 +163,7 @@ namespace YoutubeWrapper
             if (this.connectedUserCredential == null)
             {
                 var authorizeTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(this.secretStream).Secrets,
+                    new ClientSecrets {ClientId = this.clientId, ClientSecret = this.clientSecret}, 
                     new[] {YouTubeService.Scope.YoutubeUpload, YouTubeService.Scope.Youtube},
                     Environment.UserName,
                     CancellationToken.None,

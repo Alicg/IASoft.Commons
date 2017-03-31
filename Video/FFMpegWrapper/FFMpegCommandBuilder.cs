@@ -21,6 +21,7 @@ namespace FFMpegWrapper
 
         private readonly IList<string> temporaryFiles = new List<string>();
         private IObservable<double> stopSignal;
+        private bool ignoreErrors;
 
         public FFMpegCommandBuilder StartFrom(double startSecond)
         {
@@ -152,9 +153,15 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder IgnoreErrors()
+        {
+            this.ignoreErrors = true;
+            return this;
+        }
+
         public FFMpegCommand BuildCommand(string pathToFfMpegExe)
         {
-            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback, this.stopSignal);
+            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback, this.stopSignal, this.ignoreErrors);
         }
 
         private string GetIntermediateFile(string ext)

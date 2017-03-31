@@ -18,7 +18,7 @@ namespace Video.Utils
             string outputFile,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double> callbackAction = null,
-            Action<double, string> finishAction = null);
+            Action<double, Exception> finishAction = null);
 
         void EnableDebugMode();
         void DisableDebugMode();

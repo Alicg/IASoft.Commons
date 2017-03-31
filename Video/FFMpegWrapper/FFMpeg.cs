@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Utils.Extensions;
 
 namespace FFMpegWrapper
@@ -14,34 +13,30 @@ namespace FFMpegWrapper
     {
         private readonly PresetParameters presetParameters;
         private readonly IObservable<double> stopSignal;
-        private readonly string pathToFfMpegExe;
-        private readonly string fontsPath;
-        public static string LogFile = "ffmpegwrapper.log";
+        private static readonly string pathToFfMpegExe;
+        private static readonly string fontsPath;
         public static bool DebugModeEnabled = false;
+
+        static FFMpeg()
+        {
+            const string AppDir = "";
+            pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
+            if (!File.Exists(pathToFfMpegExe))
+            {
+                typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe").WriteToFile(pathToFfMpegExe);
+            }
+
+            fontsPath = Path.Combine(AppDir, "arialbd.ttf");
+            if (!File.Exists(fontsPath))
+            {
+                typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.arialbd.ttf").WriteToFile(fontsPath);
+            }
+        }
 
         public FFMpeg(PresetParameters presetParameters = PresetParameters.Medium, IObservable<double> stopSignal = null)
         {
             this.presetParameters = presetParameters;
             this.stopSignal = stopSignal ?? Observable.Empty<double>();
-            const string AppDir = "";
-            this.pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
-            if (!File.Exists(this.pathToFfMpegExe))
-            {
-                typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe").WriteToFile(this.pathToFfMpegExe);
-            }
-
-            this.fontsPath = Path.Combine(AppDir, "arialbd.ttf");
-            if (!File.Exists(this.fontsPath))
-            {
-                typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.arialbd.ttf").WriteToFile(this.fontsPath);
-            }
-        }
-
-        public FFMpeg(string pathToFFMpegExe, string fontsPath, PresetParameters presetParameters = PresetParameters.Medium)
-        {
-            this.presetParameters = presetParameters;
-            this.pathToFfMpegExe = pathToFFMpegExe;
-            this.fontsPath = fontsPath;
         }
 
         public void Concat(string outputFile, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
@@ -56,7 +51,7 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
-                .BuildCommand(this.pathToFfMpegExe)
+                .BuildCommand(pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CONCAT", result);
             globalExportProgress.IncreaseOperationsDone();
@@ -76,7 +71,7 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
-                .BuildCommand(this.pathToFfMpegExe)
+                .BuildCommand(pathToFfMpegExe)
                 .Execute();
             this.LogMessage("CUT", result);
             globalExportProgress.IncreaseOperationsDone();
@@ -95,7 +90,7 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
-                .BuildCommand(this.pathToFfMpegExe)
+                .BuildCommand(pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawImage", result);
             globalExportProgress.IncreaseOperationsDone();
@@ -109,7 +104,7 @@ namespace FFMpegWrapper
             var lines = GetTranspositionedText(overlayText, CharsInLine);
             var result = new FFMpegCommandBuilder()
                 .InputFrom(inputFile)
-                .DrawText(lines, this.fontsPath, FontSize)
+                .DrawText(lines, fontsPath, FontSize)
                 .OutputVideoCodec("libx264")
                 .OutputTune("fastdecode")
                 .OutputPreset(this.presetParameters)
@@ -117,7 +112,7 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
-                .BuildCommand(this.pathToFfMpegExe)
+                .BuildCommand(pathToFfMpegExe)
                 .Execute();
             this.LogMessage("DrawText", result);
             globalExportProgress.IncreaseOperationsDone();
@@ -138,23 +133,36 @@ namespace FFMpegWrapper
             this.DrawText(intermediateFile, overlayText, outputFile, globalExportProgress);
             File.Delete(intermediateFile);
         }
-        
+
         public byte[] GetBitmapFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
         {
             var intermediateFile = GetIntermediateFile(".jpg");
-            var quality = imageSize.ToString().ToLower();
-            var parameters = string.Format(CultureInfo.InvariantCulture, "-ss {1} -i \"{0}\" -vframes 1 -s {2} \"{3}\"", videoFile, position, quality, intermediateFile);
-            var command = new FFMpegCommand(this.pathToFfMpegExe, parameters);
-            var result = command.Execute();
-            this.LogMessage("ExtractFrame", result);
             try
             {
-                using (var fs = new FileStream(intermediateFile, FileMode.Open))
+                var quality = imageSize.ToString().ToLower();
+                var parameters = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "-ss {1} -i \"{0}\" -vframes 1 -s {2} \"{3}\"",
+                    videoFile,
+                    position,
+                    quality,
+                    intermediateFile);
+                var command = new FFMpegCommand(pathToFfMpegExe, parameters, true);
+                var result = command.Execute();
+                this.LogMessage("ExtractFrame", result);
+                using (var fs = new FileStream(intermediateFile, FileMode.Open, FileAccess.Read))
                 {
                     var byteImage = new byte[fs.Length];
-                    fs.Read(byteImage, 0, (int) fs.Length);
+                    fs.Read(byteImage, 0, (int)fs.Length);
+                    this.LogMessage("ExtractFrame", "RETURN: " + byteImage.Length);
+
                     return byteImage;
                 }
+            }
+            catch (Exception e)
+            {
+                this.LogMessage("ExtractFrame error:", e.GetFullMessage());
+                throw;
             }
             finally
             {
@@ -164,7 +172,13 @@ namespace FFMpegWrapper
 
         public FFMpegVideoInfo GetVideoInfo(string inputFile)
         {
-            var command = new FFMpegCommand(this.pathToFfMpegExe, $"-i \"{inputFile}\"");
+            if (string.IsNullOrEmpty(inputFile) || !File.Exists(inputFile))
+            {
+                throw new FileNotFoundException($"Can't get video info. File path is null or file doesn't exist. Path: {inputFile}");
+            }
+
+            // информация о видео придёт вместе с сообщением об ошибке, что не задан выходной файл.
+            var command = new FFMpegCommand(pathToFfMpegExe, $"-i \"{inputFile}\"", true);
             var result = command.Execute();
             this.LogMessage("GetVideoInfo", result);
             return ParseVideoInfo(result);
@@ -172,11 +186,9 @@ namespace FFMpegWrapper
 
         public void LogMessage(string title, string message)
         {
-            var lockTaken = Monitor.TryEnter(LogFile, new TimeSpan(0, 0, 1));
-            if (lockTaken)
+            if (DebugModeEnabled)
             {
-                File.AppendAllText(LogFile, $"{DateTime.Now}\r\n-----------{title}:--------------\r\n{message}\r\n---------------------------\r\n");
-                Monitor.Exit(LogFile);
+                FFMpegLogger.Instance.Info($"{DateTime.Now}\r\n-----------{title}:--------------\r\n{message}\r\n---------------------------\r\n");
             }
         }
 

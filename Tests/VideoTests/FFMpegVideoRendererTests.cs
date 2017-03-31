@@ -34,6 +34,21 @@ namespace VideoTests
         }
 
         [Test]
+        public void Cut1Episode_ToNotExistedFolder_ExceptionExpected_Test()
+        {
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, null, null));
+            ffmpegVideoRenderer.StartRender(
+                OutputFolder + "NotExisted//" + "Cut1Episode_NoText_NoImages.avi",
+                null,
+                (d, exception) =>
+                {
+                    Assert.IsTrue(exception.Message.Contains("No such file or directory"));
+                    Assert.Pass();
+                });
+        }
+
+        [Test]
         public void Cut2Episodes_NoText_NoImages_Test()
         {
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
@@ -113,6 +128,7 @@ namespace VideoTests
                 (fileName, percent) =>
                 {
                     currentProgress = percent;
+                    Console.WriteLine(percent);
                 },
                 (totalDuration, fileName) =>
                 {
