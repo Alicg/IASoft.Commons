@@ -16,6 +16,7 @@ namespace FFMpegWrapper
         private static readonly string pathToFfMpegExe;
         private static readonly string fontsPath;
         public static bool DebugModeEnabled = false;
+        private const string DefaultFlags = "+ildct+ilme";
 
         static FFMpeg()
         {
@@ -47,7 +48,7 @@ namespace FFMpegWrapper
                 .OutputVideoCodec("libx264")
                 .OutputPreset(this.presetParameters)
                 .OutputTune("fastdecode")
-                .WithFlags("+ildct+ilme")
+                .WithFlags(DefaultFlags)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
@@ -65,9 +66,12 @@ namespace FFMpegWrapper
                 .StartFrom(start)
                 .DurationIs(duration)
                 .OutputVideoCodec("libx264")
+                //.OutputAudioCodec("libmp3lame")
+                //.OutputSize(1024, 768)
+                //.OutputFrameRate(60)
                 .OutputPreset(this.presetParameters)
                 .OutputTune("fastdecode")
-                .WithFlags("+ildct+ilme")
+                .WithFlags(DefaultFlags)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
@@ -86,7 +90,7 @@ namespace FFMpegWrapper
                 .InputFrom(inputFile)
                 .DrawImages(imagesTimeTable)
                 .OutputVideoCodec("libx264")
-                .WithFlags("+ildct+ilme")
+                .WithFlags(DefaultFlags)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
@@ -108,7 +112,7 @@ namespace FFMpegWrapper
                 .OutputVideoCodec("libx264")
                 .OutputTune("fastdecode")
                 .OutputPreset(this.presetParameters)
-                .WithFlags("+ildct+ilme")
+                .WithFlags(DefaultFlags)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)

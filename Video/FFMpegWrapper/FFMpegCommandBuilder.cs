@@ -47,7 +47,34 @@ namespace FFMpegWrapper
                 sw.Flush();
             }
 
-            this.parametersAccumulator.AppendFormat(" -f concat -safe 0 -i \"{0}\" ", intermediateFile);
+            this.parametersAccumulator.AppendFormat(" -f concat -safe 0 -i \"{0}\" -c copy ", intermediateFile);
+            return this;
+        }
+
+        /// <summary>
+        /// Reserved for future needs.
+        /// </summary>
+        /// <param name="filesToConcat"></param>
+        /// <returns></returns>
+        private FFMpegCommandBuilder ConcatInputsFromFilter(string[] filesToConcat)
+        {
+            var intermediateFile = this.GetIntermediateFile(".txt");
+            var filterComplexBuilder = new StringBuilder();
+            using (var sw = new StreamWriter(intermediateFile))
+            {
+                for (int index = 0; index < filesToConcat.Length; index++)
+                {
+                    var inputFile = filesToConcat[index];
+                    sw.WriteLine("file '{0}'", inputFile);
+                    filterComplexBuilder.Append($"[{index}:0] [{index}:0] ");
+                }
+                sw.Flush();
+            }
+
+            this.parametersAccumulator.Append(
+                $" -i \"{intermediateFile}\"" +
+                $" -filter_complex \"{filterComplexBuilder} concat=n={filesToConcat.Length}:v=1:a=1 [v] [a]\"" +
+                $" -map \"[v]\" -map \"[a]\"");
             return this;
         }
 
@@ -110,9 +137,27 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder OutputAudioCodec(string outputCodec)
+        {
+            this.parametersAccumulator.AppendFormat(" -c:a {0} ", outputCodec);
+            return this;
+        }
+
         public FFMpegCommandBuilder OutputVideoCodec(string outputCodec)
         {
             this.parametersAccumulator.AppendFormat(" -c:v {0} ", outputCodec);
+            return this;
+        }
+
+        public FFMpegCommandBuilder OutputSize(int width, int height)
+        {
+            this.parametersAccumulator.AppendFormat(" -s {0}x{1} ", width, height);
+            return this;
+        }
+
+        public FFMpegCommandBuilder OutputFrameRate(int frameRate)
+        {
+            this.parametersAccumulator.AppendFormat(" -r {0} ", frameRate);
             return this;
         }
 
