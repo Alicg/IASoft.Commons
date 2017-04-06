@@ -26,7 +26,7 @@ namespace VideoTests
         {
             const string OutputFile = OutputFolder + "Simple20SecCut_Medium.avi";
             var ffmpeg = new FFMpeg();
-            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", OutputFile, GlobalExportProgress.Empty);
+            ffmpeg.Cut(100, 20, @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", OutputFile, GlobalExportProgress.Empty);
 
             Assert.IsTrue(File.Exists(OutputFile));
         }
@@ -44,6 +44,27 @@ namespace VideoTests
             ffmpeg.Cut(600, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat3, GlobalExportProgress.Empty);
 
             ffmpeg.Concat(OutputFile, GlobalExportProgress.Empty, FileToConcat1, FileToConcat2, FileToConcat3);
+
+            Assert.IsTrue(File.Exists(OutputFile));
+        }
+
+        [Test]
+        public void Concat4ProblemVideosFromArturas_Test()
+        {
+            const string OutputFile = OutputFolder + "4Episodes60SecConcat_SuperFast.mpg";
+            const string FileToConcat1 = OutputFolder + "1EpisodeToConcat_SuperFast.mpg";
+            const string FileToConcat2 = OutputFolder + "2EpisodeToConcat_SuperFast.mpg";
+            const string FileToConcat3 = OutputFolder + "3EpisodeToConcat_SuperFast.mpg";
+            const string FileToConcat4 = OutputFolder + "4EpisodeToConcat_SuperFast.mpg";
+            var ffmpeg = new FFMpeg(PresetParameters.SuperFast);
+            //ffmpeg.Cut(100, 20, @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", FileToConcat1, GlobalExportProgress.Empty);
+            ffmpeg.Cut(300, 20, @"M:\SVA.Videos\HDV_1626.mp4", FileToConcat1, GlobalExportProgress.Empty);
+            ffmpeg.Cut(500, 20, @"M:\SVA.Videos\HDV_1626.mp4", FileToConcat2, GlobalExportProgress.Empty);
+            //ffmpeg.Cut(680, 20, @"M:\SVA.Videos\HDV_1626.mp4", FileToConcat4, GlobalExportProgress.Empty);
+            ffmpeg.Cut(100, 20, @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", FileToConcat3, GlobalExportProgress.Empty);
+            ffmpeg.Cut(300, 20, @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", FileToConcat4, GlobalExportProgress.Empty);
+
+            ffmpeg.Concat(OutputFile, GlobalExportProgress.Empty, FileToConcat3, FileToConcat4, FileToConcat1, FileToConcat2);
 
             Assert.IsTrue(File.Exists(OutputFile));
         }
