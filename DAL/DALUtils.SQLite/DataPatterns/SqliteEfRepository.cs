@@ -8,9 +8,12 @@ namespace DALUtils.SQLite.DataPatterns
 
     public class SQLiteEfRepository<T> : EfRepository<T> where T : BaseEntity, new()
     {
-        public SQLiteEfRepository(EfUnitOfWork unitOfWork) : base(unitOfWork)
+        private static long lastDbId;
+
+        private static long lastSetId;
+
+        public SQLiteEfRepository(SqliteEfUnitOfWork unitOfWork) : base(unitOfWork)
         {
-            unitOfWork.Context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
         }
 
         public override void Add(T entity)
@@ -52,9 +55,6 @@ namespace DALUtils.SQLite.DataPatterns
                 this.DeleteById(id);
             }
         }
-
-        private static long lastDbId;
-        private static long lastSetId;
 
         private long GetNextId()
         {
