@@ -31,11 +31,13 @@ namespace Video.Utils
 
         public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize)
         {
-            return await Task.Factory.StartNew(() =>
-            {
-                var mhandler = new FFMpeg();
-                return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
-            });
+            return await Task.Factory.StartNew(
+                () =>
+                {
+                    var mhandler = new FFMpeg();
+                    return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+                },
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         public Task RenderEpisodesAsync(

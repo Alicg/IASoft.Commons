@@ -110,7 +110,7 @@ namespace FFMpegWrapper
             File.WriteAllText(scriptFile, totalFilterScript, Encoding.Default);
             var imageFiles = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
 
-            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v {1}", imageFiles, scriptFile);
+            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\"", imageFiles, scriptFile);
             return this;
         }
 
