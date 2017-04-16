@@ -1,14 +1,15 @@
-﻿namespace Utils.Common.Geometry
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using Utils.Common.Geometry;
 
+namespace Utils.Geometry
+{
     public class DouglasPeuckerAlgorithm : IReductionAlgorithm
     {
         public List<Point> Reduce(List<Point> points, double tolerance)
         {
-            return DouglasPeuckerReduction(points, tolerance);
+            return this.DouglasPeuckerReduction(points, tolerance);
         }
 
         private List<Point> DouglasPeuckerReduction(List<Point> points, Double tolerance)
@@ -30,7 +31,7 @@
                 lastPoint--;
             }
 
-            DouglasPeuckerReduction(points, firstPoint, lastPoint, tolerance, ref pointIndexsToKeep);
+            this.DouglasPeuckerReduction(points, firstPoint, lastPoint, tolerance, ref pointIndexsToKeep);
 
             var returnPoints = new List<Point>();
             pointIndexsToKeep.Sort();
@@ -57,7 +58,7 @@
 
             for (var index = firstPoint; index < lastPoint; index++)
             {
-                var distance = PerpendicularDistance(points[firstPoint], points[lastPoint], points[index]);
+                var distance = this.PerpendicularDistance(points[firstPoint], points[lastPoint], points[index]);
                 if (distance > maxDistance)
                 {
                     maxDistance = distance;
@@ -70,8 +71,8 @@
                 //Add the largest point that exceeds the tolerance
                 pointIndexsToKeep.Add(indexFarthest);
 
-                DouglasPeuckerReduction(points, firstPoint, indexFarthest, tolerance, ref pointIndexsToKeep);
-                DouglasPeuckerReduction(points, indexFarthest, lastPoint, tolerance, ref pointIndexsToKeep);
+                this.DouglasPeuckerReduction(points, firstPoint, indexFarthest, tolerance, ref pointIndexsToKeep);
+                this.DouglasPeuckerReduction(points, indexFarthest, lastPoint, tolerance, ref pointIndexsToKeep);
             }
         }
 
