@@ -45,7 +45,7 @@ namespace YoutubeWrapper
 
             var video = new Video
             {
-                Snippet = new VideoSnippet {Title = title, Description = description, Tags = new[] {"Sports"}},
+                Snippet = new VideoSnippet {Title = title, Description = description, Tags = new[] {"Sports"}, DefaultLanguage = "en"},
                 Status = new VideoStatus {PrivacyStatus = "unlisted"}
             };
             string createdVideoId;
@@ -69,6 +69,10 @@ namespace YoutubeWrapper
                 try
                 {
                     uploadProgress = await videosInsertRequest.UploadAsync(cancellationToken);
+                    if (uploadProgress.Exception != null)
+                    {
+                        throw uploadProgress.Exception;
+                    }
                 }
                 catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
