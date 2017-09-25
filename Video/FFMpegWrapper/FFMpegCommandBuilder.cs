@@ -9,7 +9,7 @@ namespace FFMpegWrapper
 {
     public class FFMpegCommandBuilder
     {
-        private Action<double> progressCallback;
+        private Action<double, double> progressCallback;
         private readonly StringBuilder parametersAccumulator = new StringBuilder();
 
         private static readonly IDictionary<PresetParameters, string> PresetsDictionary = new Dictionary<PresetParameters, string>
@@ -186,7 +186,7 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommandBuilder WithProgressCallback(Action<double> progressCallback)
+        public FFMpegCommandBuilder WithProgressCallback(Action<double, double> progressCallback)
         {
             this.progressCallback = progressCallback;
             return this;

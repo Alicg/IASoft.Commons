@@ -13,7 +13,7 @@ namespace FFMpegWrapper
     {
         private readonly bool ignoreError;
         private readonly IList<string> dependentFilesToDelete;
-        private readonly Action<double> progressCallback;
+        private readonly Action<double, double> progressCallback;
         private readonly IObservable<double> stopSignal;
         private readonly string pathToFfMpegExe;
         private readonly string command;
@@ -35,7 +35,7 @@ namespace FFMpegWrapper
             string pathToFfMpegExe,
             string command,
             IList<string> dependentFilesToDelete,
-            Action<double> progressCallback,
+            Action<double, double> progressCallback,
             IObservable<double> stopSignal,
             bool ignoreError = false)
         {
@@ -141,16 +141,7 @@ namespace FFMpegWrapper
                 if (TimeSpan.TryParse(progressMatch.Groups["progress"].Value, out progressInSeconds))
                 {
                     double currentProgress;
-                    if (progressInSeconds > this.commandDuration)
-                    {
-                        currentProgress = 1;
-                    }
-                    else
-                    {
-                        // FFMpeg может долго отдавать нулевой прогресс, но если операция началась будем отдавать хотя бы о 10% текущей операции.
-                        currentProgress = Math.Max(0.1, progressInSeconds.TotalSeconds / this.commandDuration.TotalSeconds);
-                    }
-                    this.progressCallback(currentProgress);
+                    this.progressCallback(progressInSeconds.TotalSeconds, this.commandDuration.TotalSeconds);
                 }
             }
         }

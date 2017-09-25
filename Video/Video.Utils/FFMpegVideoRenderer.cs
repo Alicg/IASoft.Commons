@@ -40,9 +40,10 @@ namespace Video.Utils
             }
         }
 
-        public void StartRender(string outputFile, Action<string, double> callbackAction = null, Action<double, Exception> finishAction = null)
+        public void StartRender(string outputFile, Action<string, double, double, double> callbackAction = null, Action<double, Exception> finishAction = null)
         {
             var renderStart = DateTime.Now;
+            
             // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
             // Сейчас это вырезать эпизоды, нарисовать по ним текст+штрихи и в конце один раз все склеить.
             var globalExportProgress = GlobalExportProgress.BuildFromRenderOptions(this.videoRenderOptions, callbackAction);
@@ -87,48 +88,9 @@ namespace Video.Utils
             }
         }
 
-        public Task StartRenderAsync(string outputFile, Action<string, double> callbackAction, Action<double, Exception> finishAction)
+        public Task StartRenderAsync(string outputFile, Action<string, double, double, double> callbackAction, Action<double, Exception> finishAction)
         {
             return Task.Run(() => this.StartRender(outputFile, callbackAction, finishAction), this.cancellationToken);
-        }
-
-        private void CutAndConcatSeveralEpisodes(string outputFile, GlobalExportProgress globalExportProgress)
-        {
-            var temporaryPartsToMerge = new List<string>();
-            try
-            {
-                var outputExt = Path.GetExtension(outputFile);
-                foreach (var renderOption in this.videoRenderOptions)
-                {
-                    if (this.cancellationToken.IsCancellationRequested)
-                        this.cancellationToken.ThrowIfCancellationRequested();
-
-                    var tempFile = GetIntermediateFile(outputExt);
-
-                    this.CutAndDrawTextAndDrawImage(
-                        renderOption.FilePath,
-                        renderOption.StartSecond,
-                        renderOption.DurationSeconds,
-                        tempFile,
-                        renderOption.OverlayText,
-                        renderOption.ImagesTimeTable,
-                        globalExportProgress);
-
-                    temporaryPartsToMerge.Add(tempFile);
-                }
-
-                if (this.cancellationToken.IsCancellationRequested)
-                    this.cancellationToken.ThrowIfCancellationRequested();
-
-                this.ffMpeg.Concat(outputFile, globalExportProgress, temporaryPartsToMerge.ToArray());
-            }
-            finally
-            {
-                foreach (var intermediateFile in temporaryPartsToMerge)
-                {
-                    File.Delete(intermediateFile);
-                }
-            }
         }
 
         public void CutAndDrawTextAndDrawImage(
@@ -163,6 +125,49 @@ namespace Video.Utils
             {
                 this.ffMpeg.DrawImage(intermediateFile1, imagesTimeTable, outputFile, globalExportProgress);
                 File.Delete(intermediateFile1);
+            }
+        }
+
+        private void CutAndConcatSeveralEpisodes(string outputFile, GlobalExportProgress globalExportProgress)
+        {
+            var temporaryPartsToMerge = new List<string>();
+            try
+            {
+                var outputExt = Path.GetExtension(outputFile);
+                foreach (var renderOption in this.videoRenderOptions)
+                {
+                    if (this.cancellationToken.IsCancellationRequested)
+                    {
+                        this.cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    var tempFile = GetIntermediateFile(outputExt);
+
+                    this.CutAndDrawTextAndDrawImage(
+                        renderOption.FilePath,
+                        renderOption.StartSecond,
+                        renderOption.DurationSeconds,
+                        tempFile,
+                        renderOption.OverlayText,
+                        renderOption.ImagesTimeTable,
+                        globalExportProgress);
+
+                    temporaryPartsToMerge.Add(tempFile);
+                }
+
+                if (this.cancellationToken.IsCancellationRequested)
+                {
+                    this.cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                this.ffMpeg.Concat(outputFile, globalExportProgress, temporaryPartsToMerge.ToArray());
+            }
+            finally
+            {
+                foreach (var intermediateFile in temporaryPartsToMerge)
+                {
+                    File.Delete(intermediateFile);
+                }
             }
         }
 

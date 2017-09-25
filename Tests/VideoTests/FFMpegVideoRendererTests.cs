@@ -106,10 +106,16 @@ namespace VideoTests
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, "OverlayText", null));
             double currentProgress = 0;
-            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut1Episode_WithText_NoImages_FinishCallbackTest.avi",
-                (fileName, percent) =>
+            ffmpegVideoRenderer.StartRender(
+                OutputFolder + "Cut1Episode_WithText_NoImages_FinishCallbackTest.avi",
+                (fileName, percent, currentTime, estimatedTime) =>
                 {
                     currentProgress = percent;
+                    Assert.GreaterOrEqual(currentTime, 0);
+                    if (!double.IsNaN(estimatedTime))
+                    {
+                        Assert.Greater(estimatedTime, 0);
+                    }
                 },
                 (totalDuration, fileName) =>
                 {
@@ -123,16 +129,22 @@ namespace VideoTests
         {
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            var images = new List<DrawImageTimeRecord> {new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4)};
+            var images = new List<DrawImageTimeRecord> { new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4) };
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, "First episode", images));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, "", new List<DrawImageTimeRecord>()));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, string.Empty, new List<DrawImageTimeRecord>()));
             double currentProgress = 0;
             var outputFilePath = OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi";
-            ffmpegVideoRenderer.StartRender(outputFilePath,
-                (fileName, percent) =>
+            ffmpegVideoRenderer.StartRender(
+                outputFilePath,
+                (fileName, percent, currentTime, estimatedTime) =>
                 {
                     currentProgress = percent;
-                    Console.WriteLine(percent);
+                    Console.WriteLine("{0}% {1}sec from {2}sec", percent, currentTime, estimatedTime);
+                    Assert.GreaterOrEqual(currentTime, 0);
+                    if (!double.IsNaN(estimatedTime))
+                    {
+                        Assert.Greater(estimatedTime, 0);
+                    }
                 },
                 (totalDuration, fileName) =>
                 {
@@ -150,7 +162,7 @@ namespace VideoTests
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, null, null));
             ffmpegVideoRenderer.StartRender(
                     OutputFolder + "Cut1Episode_NoText_NoImages.avi",
-                    (s, d) =>
+                    (s, d, currentTime, estimatedTime) =>
                         {
                             if (d > 0)
                             {
