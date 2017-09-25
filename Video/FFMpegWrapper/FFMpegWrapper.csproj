@@ -67,6 +67,7 @@
     <Compile Include="DrawParametersFactory.cs" />
     <Compile Include="FFMpegCommand.cs" />
     <Compile Include="FFMpegCommandBuilder.cs" />
+    <Compile Include="FFMpegCancelledException.cs" />
     <Compile Include="FFMpegException.cs" />
     <Compile Include="FFMpegImageQuality.cs" />
     <Compile Include="FFMpegLogger.cs" />

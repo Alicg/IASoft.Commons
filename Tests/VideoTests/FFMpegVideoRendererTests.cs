@@ -9,6 +9,9 @@ using Video.Utils;
 
 namespace VideoTests
 {
+    using System.Threading;
+    using System.Threading.Tasks;
+
     [TestFixture(Description = "Тесты абстракции над FFMpeg оберткой для операций с эпизодами.")]
     public class FFMpegVideoRendererTests
     {
@@ -84,14 +87,14 @@ namespace VideoTests
         [Test]
         public void TestLog()
         {
-            const string logFilePath = "ffmpegwrapper.log";
-            if (File.Exists(logFilePath))
+            const string LogFilePath = FFMpegLogger.LogFileName;
+            if (File.Exists(LogFilePath))
             {
-                File.Delete(logFilePath);
+                File.Delete(LogFilePath);
             }
             this.Cut1Episode_NoText_NoImages_Test();
             this.Cut2Episodes_NoText_NoImages_Test();
-            var logText = File.ReadAllText(logFilePath);
+            var logText = File.ReadAllText(LogFilePath);
 
             var regex = new Regex("\r\n-----------*.?--------------\r\n");
             Assert.AreEqual(6, regex.Matches(logText).Count);
@@ -121,10 +124,11 @@ namespace VideoTests
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
             var images = new List<DrawImageTimeRecord> {new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4)};
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "First episode", images));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "", new List<DrawImageTimeRecord>()));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, "First episode", images));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, "", new List<DrawImageTimeRecord>()));
             double currentProgress = 0;
-            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi",
+            var outputFilePath = OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi";
+            ffmpegVideoRenderer.StartRender(outputFilePath,
                 (fileName, percent) =>
                 {
                     currentProgress = percent;
@@ -135,7 +139,27 @@ namespace VideoTests
                     Assert.AreEqual(1, currentProgress);
                 });
             sw.Stop();
-            Assert.IsTrue(File.Exists(OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.avi"));
+            Assert.IsTrue(File.Exists(outputFilePath));
+        }
+
+        [Test]
+        public void Cut1Episode_NoText_NoImages_Cancel_Test()
+        {
+            var cancelationTokenSource = new CancellationTokenSource();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer(cancelationTokenSource);
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, null, null));
+            ffmpegVideoRenderer.StartRender(
+                    OutputFolder + "Cut1Episode_NoText_NoImages.avi",
+                    (s, d) =>
+                        {
+                            if (d > 0)
+                            {
+                                Task.Run(() => cancelationTokenSource.Cancel());
+                            }
+                        },
+                    (d, exception) => { Assert.IsTrue(exception is FFMpegCancelledException); });
+
+            Assert.IsFalse(File.Exists(OutputFolder + "Cut1Episode_NoText_NoImages.avi"));
         }
 
         [TearDown]

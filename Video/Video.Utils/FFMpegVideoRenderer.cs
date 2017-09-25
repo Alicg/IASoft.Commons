@@ -79,6 +79,10 @@ namespace Video.Utils
             }
             catch (Exception ex)
             {
+                if (File.Exists(outputFile))
+                {
+                    File.Delete(outputFile);
+                }
                 finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, ex);
             }
         }

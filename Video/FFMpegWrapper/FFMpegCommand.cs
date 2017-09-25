@@ -81,7 +81,13 @@ namespace FFMpegWrapper
                     };
                 }
 
-                using (this.stopSignal.Subscribe(v => process.Kill()))
+                bool cancelled = false;
+                using (this.stopSignal.Subscribe(
+                    v =>
+                        {
+                            process.Kill();
+                            cancelled = true;
+                        }))
                 {
                     process.Start();
                     process.PriorityClass = ProcessPriorityClass.High;
@@ -101,6 +107,10 @@ namespace FFMpegWrapper
 
                 if (process.ExitCode != 0 && !this.ignoreError)
                 {
+                    if (cancelled)
+                    {
+                        throw new FFMpegCancelledException("Process was cancelled");
+                    }
                     var lastFFMpegOutput = fullLog.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
                     throw new FFMpegException(lastFFMpegOutput);
                 }

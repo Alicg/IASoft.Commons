@@ -39,9 +39,9 @@ namespace VideoTests
             const string FileToConcat2 = OutputFolder + "2EpisodeToConcat_SuperFast.avi";
             const string FileToConcat3 = OutputFolder + "3EpisodeToConcat_SuperFast.avi";
             var ffmpeg = new FFMpeg(PresetParameters.SuperFast);
-            ffmpeg.Cut(100, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat1, GlobalExportProgress.Empty);
-            ffmpeg.Cut(300, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat2, GlobalExportProgress.Empty);
-            ffmpeg.Cut(600, 20, @"M:\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat3, GlobalExportProgress.Empty);
+            ffmpeg.Cut(100, 20, @"M:\SVA.Videos\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat1, GlobalExportProgress.Empty);
+            ffmpeg.Cut(300, 20, @"M:\SVA.Videos\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat2, GlobalExportProgress.Empty);
+            ffmpeg.Cut(600, 20, @"M:\SVA.Videos\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4", FileToConcat3, GlobalExportProgress.Empty);
 
             ffmpeg.Concat(OutputFile, GlobalExportProgress.Empty, FileToConcat1, FileToConcat2, FileToConcat3);
 

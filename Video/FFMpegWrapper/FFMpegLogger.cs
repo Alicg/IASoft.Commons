@@ -7,6 +7,7 @@ namespace FFMpegWrapper
 {
     public class FFMpegLogger
     {
+        public const string LogFileName = "ffmpeg.log";
         public static Logger Instance { get; } = InitLogger();
 
         private static Logger InitLogger()
@@ -15,7 +16,7 @@ namespace FFMpegWrapper
 
             var fileTarget = new FileTarget
             {
-                FileName = "${basedir}/ffmpeg.log",
+                FileName = "${basedir}/" + LogFileName,
                 Layout = "${message}"
             };
 

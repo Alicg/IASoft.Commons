@@ -25,7 +25,7 @@ namespace VideoTests
                 "1/QdUuZknDmquIdTo46TI8kgnhSMG9bEvAvqnWGYq4mRk".ConvertToSecureString());
             var videoUploadTask = youtubeFacade
                 .UploadVideo(
-                    @"W:\Home\sport\SportVideoAnalyzer\src\Shells\SVA\bin\Debug\16.02.2017 with no players.avi",
+                    @"M:\SVA.Videos\24.02.2017 Mistakes.avi",
                     "Test video",
                     "Test description",
                     "Uploaded",
@@ -55,7 +55,7 @@ namespace VideoTests
             var cts = new CancellationTokenSource();
             var videoUploadTask = youtubeFacade
                 .UploadVideo(
-                    @"W:\Home\sport\SportVideoAnalyzer\src\Shells\SVA\bin\Debug\16.02.2017 with no players.avi",
+                    @"M:\SVA.Videos\24.02.2017 Mistakes.avi",
                     "Test video",
                     "Test description",
                     "Uploaded",
