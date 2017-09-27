@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B2C28E61-7B2C-4094-A7C3-149BD0AF2199}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BuildProject</RootNamespace>
+    <AssemblyName>BuildProject</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\ReleaseBinaries\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deploy.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DAL\DALUtils.EF\DALUtils.EF.csproj">
+      <Project>{656ccce2-af08-4a71-a2a3-299a0c28e0c8}</Project>
+      <Name>DALUtils.EF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DAL\DALUtils.SQLite\DALUtils.SQLite.csproj">
+      <Project>{2ae39305-011a-4096-883c-643cc7a76e28}</Project>
+      <Name>DALUtils.SQLite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DAL\DALUtils\DALUtils.csproj">
+      <Project>{b507c4be-4bf4-4be6-85c6-5fc30e6b0110}</Project>
+      <Name>DALUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\DataTests\DALUtils.Tests\DALUtils.Tests.csproj">
+      <Project>{5e11d5df-a681-4344-9fbb-4618280a0068}</Project>
+      <Name>DALUtils.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\DataTests\TestModel\TestModel.csproj">
+      <Project>{7238704d-9aa1-4b5e-8cb9-03e163dfac51}</Project>
+      <Name>TestModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\VideoTests\VideoTests.csproj">
+      <Project>{42a7df74-bcae-4f9b-badb-929e5be11c6d}</Project>
+      <Name>VideoTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityUtils\UnityUtils.csproj">
+      <Project>{ee37fdd1-d1cd-4d3f-b563-733f386ba947}</Project>
+      <Name>UnityUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{34b54e00-df35-4414-8e6f-59a24c895925}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Video\FFMpegWrapper\FFMpegWrapper.csproj">
+      <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>
+      <Name>FFMpegWrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Video\Video.Utils\Video.Utils.csproj">
+      <Project>{229aaced-e72f-4bbe-8071-56da815e6578}</Project>
+      <Name>Video.Utils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Video\YoutubeWrapper\YoutubeWrapper.csproj">
+      <Project>{f3256f5f-19ea-4c4d-91d9-1675591beb30}</Project>
+      <Name>YoutubeWrapper</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if $(ConfigurationName) == Release call "W:\Home\sport\CommonLibs\ReleaseBinaries\deploy.bat"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

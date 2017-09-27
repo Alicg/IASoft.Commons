@@ -1,0 +1,1 @@
+xcopy *.dll W:\Home\sport\SportVideoAnalyzer\external\CommonLibs /y
