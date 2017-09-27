@@ -68,18 +68,18 @@ namespace FFMpegWrapper
                         Verb = "runas"
                     }
                 };
-                if (this.progressCallback != null)
+                process.ErrorDataReceived += (sender, args) =>
                 {
-                    process.ErrorDataReceived += (sender, args) =>
+                    if (args.Data == null)
                     {
-                        if (args.Data == null)
-                        {
-                            return;
-                        }
-                        fullLogBuilder.AppendLine(args.Data);
+                        return;
+                    }
+                    fullLogBuilder.AppendLine($"{DateTime.Now.ToLongTimeString()} {args.Data}");
+                    if (this.progressCallback != null)
+                    {
                         this.NotifyProgressChanged(args.Data);
-                    };
-                }
+                    }
+                };
 
                 bool cancelled = false;
                 using (this.stopSignal.Subscribe(
@@ -103,7 +103,11 @@ namespace FFMpegWrapper
                     process.Kill();
                 }
 
-                var fullLog = this.progressCallback != null ? fullLogBuilder.ToString() : process.StandardError.ReadToEnd();
+                var fullLog = fullLogBuilder.ToString();
+                if (string.IsNullOrEmpty(fullLog))
+                {
+                    fullLog = process.StandardError.ReadToEnd();
+                }
 
                 if (process.ExitCode != 0 && !this.ignoreError)
                 {
@@ -140,7 +144,6 @@ namespace FFMpegWrapper
                 TimeSpan progressInSeconds;
                 if (TimeSpan.TryParse(progressMatch.Groups["progress"].Value, out progressInSeconds))
                 {
-                    double currentProgress;
                     this.progressCallback(progressInSeconds.TotalSeconds, this.commandDuration.TotalSeconds);
                 }
             }
