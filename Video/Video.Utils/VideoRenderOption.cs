@@ -15,14 +15,22 @@
             this.ImagesTimeTable = imagesTimeTable;
         }
 
-        public string FilePath { get; private set; }
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText) : this(filePath, startSecond, durationSeconds, overlayText, new List<DrawImageTimeRecord>())
+        {
+        }
 
-        public double StartSecond { get; private set; }
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds) : this(filePath, startSecond, durationSeconds, string.Empty)
+        {
+        }
+
+        public string FilePath { get; }
+
+        public double StartSecond { get; }
 
         public double DurationSeconds { get; }
 
-        public string OverlayText { get; private set; }
+        public string OverlayText { get; }
 
-        public List<DrawImageTimeRecord> ImagesTimeTable { get; private set; }
+        public List<DrawImageTimeRecord> ImagesTimeTable { get; }
     }
 }

@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using FFMpegWrapper;
 
 namespace Video.Utils
 {
     public class GlobalExportProgress : IGlobalExportProgress
     {
+        private readonly ConcurrentDictionary<int, double> activeOperationsProgress = new ConcurrentDictionary<int, double>();
         private readonly int totalOperationsExpected;
+        private DateTime exportStartedAt;
 
         /// <summary>
         /// Оповещает о том, что видео с именем STRING было полностью экспортировано на double1 процентов, или на double2 секунд из double3 общих расчётных секунд.
@@ -15,18 +19,6 @@ namespace Video.Utils
         private readonly Action<string, double, double, double> progressChangedCallback;
 
         private int operationsDone;
-
-        /// <summary>
-        /// Число секунд, прошедших с начала выполнения текущей операции.
-        /// </summary>
-        private double currentSeconds;
-
-        /// <summary>
-        /// Общее число секунд, прошедшее с начала экспорта.
-        /// </summary>
-        private double totalCurrentSeconds;
-
-        private double currentOperationProgress;
 
         private GlobalExportProgress(int totalOperationsExpected, Action<string, double, double, double> progressChangedCallback)
         {
@@ -38,39 +30,40 @@ namespace Video.Utils
 
         public double GlobalProgress => (double)this.operationsDone / this.totalOperationsExpected;
 
-        /// <param name="currentSeconds">Число секунд, прошедших с начала выполнения текущей операции.</param>
-        /// <param name="totalEstimatedSeconds">Рассчетное число секунд, требуемое для полного выполнения текущей операции.</param>
-        public void SetCurrentOperationProgress(double currentSeconds, double totalEstimatedSeconds)
+        public void StartExport()
         {
-            this.currentSeconds = currentSeconds;
+            this.exportStartedAt = DateTime.Now;
+        }
 
-            if (currentSeconds > totalEstimatedSeconds)
+        /// <param name="currentSeconds">Число секунд, обработанных текущей операцией.</param>
+        /// <param name="totalEstimatedSeconds">Общее число секунд, которые нужно обработать текущей операции.</param>
+        public void SetCurrentOperationProgress(double currentSeconds, double totalEstimatedSeconds, int processId)
+        {
+            if (!this.activeOperationsProgress.ContainsKey(processId))
             {
-                this.currentOperationProgress = 1;
+                this.activeOperationsProgress.TryAdd(processId, Math.Min(1, Math.Max(0.1, currentSeconds / totalEstimatedSeconds)));
             }
             else
             {
-                // FFMpeg может долго отдавать нулевой прогресс, но если операция началась будем отдавать хотя бы о 10% текущей операции.
-                this.currentOperationProgress = Math.Max(0.1, currentSeconds / totalEstimatedSeconds);
+                this.activeOperationsProgress[processId] = Math.Min(1, Math.Max(0.1, currentSeconds / totalEstimatedSeconds));
             }
 
             this.NotifyGlobalProgress();
         }
 
-        public void IncreaseOperationsDone()
+        public void IncreaseOperationsDone(int processId)
         {
-            this.operationsDone++;
-            this.totalCurrentSeconds += this.currentSeconds;
-            this.currentSeconds = 0;
-            this.currentOperationProgress = 0;
+            Interlocked.Increment(ref this.operationsDone);
+            this.activeOperationsProgress.TryRemove(processId, out double _);
             this.NotifyGlobalProgress();
         }
 
         private void NotifyGlobalProgress()
         {
-            var globalProgress = (this.operationsDone + this.currentOperationProgress) / this.totalOperationsExpected;
-            var totalEstimatedTime = globalProgress > 0.1 ? (this.totalCurrentSeconds + this.currentSeconds) / globalProgress : double.NaN;
-            this.progressChangedCallback?.Invoke(null, globalProgress, this.totalCurrentSeconds + this.currentSeconds, totalEstimatedTime);
+            var values = this.activeOperationsProgress.Values;
+            var activeOperationsCompleted = values.Any() ? values.Aggregate((t, c) => t + c) : 0;
+            var globalProgress = (this.operationsDone + activeOperationsCompleted) / this.totalOperationsExpected;
+            this.progressChangedCallback?.Invoke(null, globalProgress, (DateTime.Now - this.exportStartedAt).TotalSeconds, 0);
         }
 
         public static GlobalExportProgress Empty => new GlobalExportProgress(0, null);
@@ -88,11 +81,13 @@ namespace Video.Utils
 
             if (videoRenderOptions.Count > 1)
             {
-                // один раз склеить эпизоды.
-                totalOperationsExpected += 1;
+                // один раз склеить и конвертировать эпизоды в конечный формат.
+                totalOperationsExpected += 2;
             }
 
-            return new GlobalExportProgress(totalOperationsExpected, progressChangedCallback);
+            var progress = new GlobalExportProgress(totalOperationsExpected, progressChangedCallback);
+            progress.StartExport();
+            return progress;
         }
     }
 }

@@ -61,6 +61,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CutOptionsBuilder.cs" />
+    <Compile Include="EpisodesRenderer.cs" />
     <Compile Include="FFMpegVideoRenderer.cs" />
     <Compile Include="GlobalExportProgress.cs" />
     <Compile Include="IVideoRenderer.cs" />

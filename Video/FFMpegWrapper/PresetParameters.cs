@@ -2,6 +2,6 @@
 {
     public enum PresetParameters
     {
-        SuperFast, Medium, Slower
+        UltraFast, SuperFast, Medium, Slower
     }
 }

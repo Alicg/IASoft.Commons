@@ -4,6 +4,11 @@ namespace FFMpegWrapper
 {
     public class FFMpegException : Exception
     {
-         public FFMpegException(string message) : base(message) { }
+        public string AllFFMpegOutput { get; }
+
+        public FFMpegException(string message, string allFFMpegOutput) : base(message)
+        {
+            this.AllFFMpegOutput = allFFMpegOutput;
+        }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
@@ -43,6 +45,7 @@ namespace Video.Utils
         public Task RenderEpisodesAsync(
             VideoRenderOption[] renderOptions,
             string outputFile,
+            Size outputSize,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double, double, double> callbackAction = null,
             Action<double, Exception> finishAction = null)
@@ -52,7 +55,7 @@ namespace Video.Utils
             {
                 renderer.AddVideoEpisodes(renderOption);
             }
-            return renderer.StartRenderAsync(outputFile, callbackAction, finishAction);
+            return renderer.StartRenderAsync(outputFile, outputSize, callbackAction, finishAction);
         }
 
         public void EnableDebugMode()

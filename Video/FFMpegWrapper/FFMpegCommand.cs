@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace FFMpegWrapper
 {
@@ -13,7 +14,7 @@ namespace FFMpegWrapper
     {
         private readonly bool ignoreError;
         private readonly IList<string> dependentFilesToDelete;
-        private readonly Action<double, double> progressCallback;
+        private readonly Action<double, double, int> progressCallback;
         private readonly IObservable<double> stopSignal;
         private readonly string pathToFfMpegExe;
         private readonly string command;
@@ -35,7 +36,7 @@ namespace FFMpegWrapper
             string pathToFfMpegExe,
             string command,
             IList<string> dependentFilesToDelete,
-            Action<double, double> progressCallback,
+            Action<double, double, int> progressCallback,
             IObservable<double> stopSignal,
             bool ignoreError = false)
         {
@@ -46,6 +47,8 @@ namespace FFMpegWrapper
             this.stopSignal = stopSignal;
             this.ignoreError = ignoreError;
         }
+        
+        public int ProcessId { get; private set; }
 
         public string Execute()
         {
@@ -77,7 +80,7 @@ namespace FFMpegWrapper
                     fullLogBuilder.AppendLine($"{DateTime.Now.ToLongTimeString()} {args.Data}");
                     if (this.progressCallback != null)
                     {
-                        this.NotifyProgressChanged(args.Data);
+                        this.NotifyProgressChanged(args.Data, process.Id);
                     }
                 };
 
@@ -90,7 +93,15 @@ namespace FFMpegWrapper
                         }))
                 {
                     process.Start();
-                    process.PriorityClass = ProcessPriorityClass.High;
+                    try
+                    {
+                        this.ProcessId = process.Id;
+                        process.PriorityClass = ProcessPriorityClass.High;
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                     if (this.progressCallback != null)
                     {
                         process.BeginErrorReadLine();
@@ -113,12 +124,12 @@ namespace FFMpegWrapper
                 {
                     if (cancelled)
                     {
-                        throw new FFMpegCancelledException("Process was cancelled");
+                        throw new FFMpegCancelledException("Process was cancelled", $"{this.command}\r\n{fullLog}");
                     }
                     var lastFFMpegOutput = fullLog.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
-                    throw new FFMpegException(lastFFMpegOutput);
+                    throw new FFMpegException(lastFFMpegOutput, $"{this.command}\r\n{fullLog}");
                 }
-
+                
                 return $"{process.StartInfo.FileName} {process.StartInfo.Arguments}\r\n{fullLog}";
             }
             finally
@@ -127,7 +138,7 @@ namespace FFMpegWrapper
             }
         }
 
-        private void NotifyProgressChanged(string ffmpegProgressLog)
+        private void NotifyProgressChanged(string ffmpegProgressLog, int processId)
         {
             var durationRegex = new Regex("Duration:\\s(?<duration>[0-9:.]+)([,]|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
             var progressRegex = new Regex("time=(?<progress>[0-9:.]+)\\s", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
@@ -136,6 +147,8 @@ namespace FFMpegWrapper
             {
                 TimeSpan duration;
                 TimeSpan.TryParse(durationMatch.Groups["duration"].Value, out duration);
+                
+                //TODO: это некорректная логика, т.к. в duration будет длительность самого видео, а не длительность его обработки.
                 this.commandDuration += duration;
             }
             var progressMatch = progressRegex.Match(ffmpegProgressLog);
@@ -144,7 +157,7 @@ namespace FFMpegWrapper
                 TimeSpan progressInSeconds;
                 if (TimeSpan.TryParse(progressMatch.Groups["progress"].Value, out progressInSeconds))
                 {
-                    this.progressCallback(progressInSeconds.TotalSeconds, this.commandDuration.TotalSeconds);
+                    this.progressCallback(progressInSeconds.TotalSeconds, this.commandDuration.TotalSeconds, processId);
                 }
             }
         }

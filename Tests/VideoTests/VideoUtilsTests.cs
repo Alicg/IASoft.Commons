@@ -15,7 +15,7 @@ namespace VideoTests
         public void CreateThumbnailFromSmallVideo_Test()
         {
             var thumbnail = new VideoUtils().GetFrameFromVideoAsByte(SampleFiles.SampleVideo_5sec, 1);
-            Assert.AreEqual(7152, thumbnail.Length, 100);
+            Assert.AreEqual(6752, thumbnail.Length, 100);
         }
 
         [Test]

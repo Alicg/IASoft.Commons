@@ -4,6 +4,6 @@ namespace FFMpegWrapper
 {
     public class FFMpegCancelledException : FFMpegException
     {
-         public FFMpegCancelledException(string message) : base(message) { }
+         public FFMpegCancelledException(string message, string allFFMpegOutput) : base(message, allFFMpegOutput) { }
     }
 }

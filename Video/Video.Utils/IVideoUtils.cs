@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
@@ -16,6 +18,7 @@ namespace Video.Utils
         Task RenderEpisodesAsync(
             VideoRenderOption[] renderOptions,
             string outputFile,
+            Size outputSize,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double, double, double> callbackAction = null,
             Action<double, Exception> finishAction = null);

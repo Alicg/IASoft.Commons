@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FFMpegCutOptions.cs" />
     <Compile Include="DrawImageTimeRecord.cs" />
     <Compile Include="DrawParametersFactory.cs" />
     <Compile Include="FFMpegCommand.cs" />
@@ -80,6 +81,7 @@
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="TemporaryFilesStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ffmpeg.exe" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,11 +10,12 @@ namespace FFMpegWrapper
 {
     public class FFMpegCommandBuilder
     {
-        private Action<double, double> progressCallback;
+        private Action<double, double, int> progressCallback;
         private readonly StringBuilder parametersAccumulator = new StringBuilder();
 
         private static readonly IDictionary<PresetParameters, string> PresetsDictionary = new Dictionary<PresetParameters, string>
         {
+            {PresetParameters.UltraFast, "ultrafast"},
             {PresetParameters.SuperFast, "superfast"},
             {PresetParameters.Medium, "medium"},
             {PresetParameters.Slower, "slower"}
@@ -47,7 +49,7 @@ namespace FFMpegWrapper
                 sw.Flush();
             }
 
-            this.parametersAccumulator.AppendFormat(" -f concat -safe 0 -i \"{0}\" -c copy ", intermediateFile);
+            this.parametersAccumulator.AppendFormat(" -f concat -safe 0 -i \"{0}\"", intermediateFile);
             return this;
         }
 
@@ -75,6 +77,12 @@ namespace FFMpegWrapper
                 $" -i \"{intermediateFile}\"" +
                 $" -filter_complex \"{filterComplexBuilder} concat=n={filesToConcat.Length}:v=1:a=1 [v] [a]\"" +
                 $" -map \"[v]\" -map \"[a]\"");
+            return this;
+        }
+
+        public FFMpegCommandBuilder AppendCustom(string customParameter)
+        {
+            this.parametersAccumulator.Append($" {customParameter} ");
             return this;
         }
 
@@ -155,6 +163,15 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder OutputScale(Size size)
+        {
+            if (size != Size.Empty)
+            {
+                this.parametersAccumulator.AppendFormat("-vf \"scale={0}x{1}\" ", size.Width, size.Height);
+            }
+            return this;
+        }
+
         public FFMpegCommandBuilder OutputFrameRate(int frameRate)
         {
             this.parametersAccumulator.AppendFormat(" -r {0} ", frameRate);
@@ -164,13 +181,13 @@ namespace FFMpegWrapper
         public FFMpegCommandBuilder OutputPreset(PresetParameters presetParameter)
         {
             var preset = PresetsDictionary.ContainsKey(presetParameter) ? PresetsDictionary[presetParameter] : PresetsDictionary[PresetParameters.Medium];
-            this.parametersAccumulator.AppendFormat(" -preset {0}", preset);
+            this.parametersAccumulator.AppendFormat(" -preset {0} ", preset);
             return this;
         }
 
         public FFMpegCommandBuilder OutputTune(string tune)
         {
-            this.parametersAccumulator.AppendFormat(" -tune {0}", tune);
+            this.parametersAccumulator.AppendFormat(" -tune {0} ", tune);
             return this;
         }
 
@@ -186,7 +203,7 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommandBuilder WithProgressCallback(Action<double, double> progressCallback)
+        public FFMpegCommandBuilder WithProgressCallback(Action<double, double, int> progressCallback)
         {
             this.progressCallback = progressCallback;
             return this;
