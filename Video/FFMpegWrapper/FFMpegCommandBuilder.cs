@@ -21,9 +21,14 @@ namespace FFMpegWrapper
             {PresetParameters.Slower, "slower"}
         };
 
-        private readonly IList<string> temporaryFiles = new List<string>();
+        private readonly TemporaryFilesStorage temporaryFilesStorage;
         private IObservable<double> stopSignal;
         private bool ignoreErrors;
+
+        public FFMpegCommandBuilder(TemporaryFilesStorage temporaryFilesStorage)
+        {
+            this.temporaryFilesStorage = temporaryFilesStorage;
+        }
 
         public FFMpegCommandBuilder StartFrom(double startSecond)
         {
@@ -223,14 +228,12 @@ namespace FFMpegWrapper
 
         public FFMpegCommand BuildCommand(string pathToFfMpegExe)
         {
-            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.temporaryFiles, this.progressCallback, this.stopSignal, this.ignoreErrors);
+            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.progressCallback, this.stopSignal, this.ignoreErrors);
         }
 
         private string GetIntermediateFile(string ext)
         {
-            var intermediateFile = Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{ext}");
-            this.temporaryFiles.Add(intermediateFile);
-            return intermediateFile;
+            return this.temporaryFilesStorage.GetIntermediateFile(ext);
         }
     }
 }

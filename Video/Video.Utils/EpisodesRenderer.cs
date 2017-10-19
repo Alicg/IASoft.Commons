@@ -8,9 +8,12 @@ using FFMpegWrapper;
 
 namespace Video.Utils
 {
+    using System;
+    using System.Reactive.Linq;
+    using System.Reactive.Subjects;
+
     public class EpisodesRenderer
     {
-        private readonly FFMpeg ffMpeg;
         private readonly CancellationToken cancellationToken;
         private readonly IList<VideoRenderOption> videoRenderOptions;
         private readonly string outputFile;
@@ -18,14 +21,12 @@ namespace Video.Utils
         private readonly IGlobalExportProgress globalExportProgress;
 
         public EpisodesRenderer(
-            FFMpeg ffMpeg,
             IList<VideoRenderOption> videoRenderOptions,
             string outputFile,
             Size outputSize,
             IGlobalExportProgress globalExportProgress,
             CancellationToken cancellationToken)
         {
-            this.ffMpeg = ffMpeg;
             this.cancellationToken = cancellationToken;
             this.videoRenderOptions = videoRenderOptions;
             this.outputFile = outputFile;
@@ -37,6 +38,14 @@ namespace Video.Utils
         {
             using (var temporaryFilesStorage = new TemporaryFilesStorage())
             {
+                var subject = new Subject<double>();
+
+                // ReSharper disable once ImpureMethodCallOnReadonlyValueField
+                // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
+                this.cancellationToken.Register(() => subject.OnNext(0));
+                var ffMpeg = new FFMpeg(temporaryFilesStorage, subject.AsObservable());
+                ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
+
                 var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage);
             
                 Parallel.ForEach(
@@ -52,7 +61,7 @@ namespace Video.Utils
                         
                         // ReSharper disable once AccessToDisposedClosure
                         // выполнение замыкания всегда будет происходить до Dispose.
-                        this.CutAndDrawTextAndDrawImage(cutOptions, renderOption.OverlayText, renderOption.ImagesTimeTable, temporaryFilesStorage);
+                        this.CutAndDrawTextAndDrawImage(ffMpeg, cutOptions, renderOption.OverlayText, renderOption.ImagesTimeTable, temporaryFilesStorage);
                     });
 
                 if (cutOptionsBuilder.FilesToConcat.Count == 1)
@@ -67,13 +76,14 @@ namespace Video.Utils
                     }
 
                     var tempFileForConcat = temporaryFilesStorage.GetIntermediateFile(cutOptionsBuilder.OutputExtension);
-                    this.ffMpeg.Concat(tempFileForConcat, this.outputSize, this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
-                    this.ffMpeg.Convert(tempFileForConcat, this.outputFile, this.globalExportProgress);
+                    ffMpeg.Concat(tempFileForConcat, this.outputSize, this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
+                    ffMpeg.Convert(tempFileForConcat, this.outputFile, this.globalExportProgress);
                 }
             }
         }
 
         private void CutAndDrawTextAndDrawImage(
+            FFMpeg ffMpeg,
             FFMpegCutOptions cutOptions,
             string overlayText,
             List<DrawImageTimeRecord> imagesTimeTable,
@@ -84,23 +94,23 @@ namespace Video.Utils
             var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
             if (string.IsNullOrEmpty(overlayText) && !imagesExist)
             {
-                this.ffMpeg.Cut(cutOptions);
+                ffMpeg.Cut(cutOptions);
                 return;
             }
             var intermediateFile1 = temporaryFilesStorage.GetIntermediateFile(extensionForResultFile);
 
-            this.ffMpeg.Cut(cutOptions.CloneWithOtherOutput(intermediateFile1));
+            ffMpeg.Cut(cutOptions.CloneWithOtherOutput(intermediateFile1));
 
             if (!string.IsNullOrEmpty(overlayText))
             {
                 var intermediateFile2 = imagesExist ? temporaryFilesStorage.GetIntermediateFile(extensionForResultFile) : cutOptions.OutputFile;
-                this.ffMpeg.DrawText(intermediateFile1, overlayText, intermediateFile2, cutOptions.GlobalExportProgress);
+                ffMpeg.DrawText(intermediateFile1, overlayText, intermediateFile2, cutOptions.GlobalExportProgress);
                 File.Delete(intermediateFile1);
                 intermediateFile1 = intermediateFile2;
             }
             if (imagesExist)
             {
-                this.ffMpeg.DrawImage(intermediateFile1, imagesTimeTable, cutOptions.OutputFile, cutOptions.GlobalExportProgress);
+                ffMpeg.DrawImage(intermediateFile1, imagesTimeTable, cutOptions.OutputFile, cutOptions.GlobalExportProgress);
                 File.Delete(intermediateFile1);
             }
         }

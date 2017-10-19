@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace FFMpegWrapper
 {
     public class FFMpegCommand
     {
         private readonly bool ignoreError;
-        private readonly IList<string> dependentFilesToDelete;
         private readonly Action<double, double, int> progressCallback;
         private readonly IObservable<double> stopSignal;
         private readonly string pathToFfMpegExe;
@@ -22,27 +18,19 @@ namespace FFMpegWrapper
         private TimeSpan commandDuration = TimeSpan.Zero;
 
         public FFMpegCommand(string pathToFfMpegExe, string command, bool ignoreError = false)
-            : this(pathToFfMpegExe, command, new string[0])
-        {
-            this.ignoreError = ignoreError;
-        }
-
-        public FFMpegCommand(string pathToFfMpegExe, string command, IList<string> dependentFilesToDelete, bool ignoreError = false)
-            : this(pathToFfMpegExe, command, dependentFilesToDelete, null, Observable.Empty<double>(), ignoreError)
+            : this(pathToFfMpegExe, command, null, Observable.Empty<double>(), ignoreError)
         {
         }
 
         public FFMpegCommand(
             string pathToFfMpegExe,
             string command,
-            IList<string> dependentFilesToDelete,
             Action<double, double, int> progressCallback,
             IObservable<double> stopSignal,
             bool ignoreError = false)
         {
             this.pathToFfMpegExe = pathToFfMpegExe;
             this.command = command;
-            this.dependentFilesToDelete = dependentFilesToDelete;
             this.progressCallback = progressCallback;
             this.stopSignal = stopSignal;
             this.ignoreError = ignoreError;
@@ -52,26 +40,24 @@ namespace FFMpegWrapper
 
         public string Execute()
         {
-            try
-            {
-                var fullpath = string.Concat("\"", this.pathToFfMpegExe, "\"");
-                var fullLogBuilder = new StringBuilder();
-                var process = new Process
-                {
-                    StartInfo =
-                    {
-                        UseShellExecute = false,
-                        RedirectStandardInput = true,
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = fullpath,
-                        Arguments = this.command,
-                        Verb = "runas"
-                    }
-                };
-                process.ErrorDataReceived += (sender, args) =>
+            var fullpath = string.Concat("\"", this.pathToFfMpegExe, "\"");
+            var fullLogBuilder = new StringBuilder();
+            var process = new Process
+                              {
+                                  StartInfo =
+                                      {
+                                          UseShellExecute = false,
+                                          RedirectStandardInput = true,
+                                          RedirectStandardError = true,
+                                          RedirectStandardOutput = false,
+                                          CreateNoWindow = true,
+                                          WindowStyle = ProcessWindowStyle.Hidden,
+                                          FileName = fullpath,
+                                          Arguments = this.command,
+                                          Verb = "runas"
+                                      }
+                              };
+            process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data == null)
                     {
@@ -84,58 +70,53 @@ namespace FFMpegWrapper
                     }
                 };
 
-                bool cancelled = false;
-                using (this.stopSignal.Subscribe(
-                    v =>
-                        {
-                            process.Kill();
-                            cancelled = true;
-                        }))
-                {
-                    process.Start();
-                    try
+            bool cancelled = false;
+            using (this.stopSignal.Subscribe(
+                v =>
                     {
-                        this.ProcessId = process.Id;
-                        process.PriorityClass = ProcessPriorityClass.High;
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                    if (this.progressCallback != null)
-                    {
-                        process.BeginErrorReadLine();
-                    }
-                    process.WaitForExit();
-                }
-
-                if (!process.HasExited)
-                {
-                    process.Kill();
-                }
-
-                var fullLog = fullLogBuilder.ToString();
-                if (string.IsNullOrEmpty(fullLog))
-                {
-                    fullLog = process.StandardError.ReadToEnd();
-                }
-
-                if (process.ExitCode != 0 && !this.ignoreError)
-                {
-                    if (cancelled)
-                    {
-                        throw new FFMpegCancelledException("Process was cancelled", $"{this.command}\r\n{fullLog}");
-                    }
-                    var lastFFMpegOutput = fullLog.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
-                    throw new FFMpegException(lastFFMpegOutput, $"{this.command}\r\n{fullLog}");
-                }
-                
-                return $"{process.StartInfo.FileName} {process.StartInfo.Arguments}\r\n{fullLog}";
-            }
-            finally
+                        process.Kill();
+                        cancelled = true;
+                    }))
             {
-                this.ClearFielsToDelete();
+                process.Start();
+                try
+                {
+                    this.ProcessId = process.Id;
+                    process.PriorityClass = ProcessPriorityClass.High;
+                }
+                catch
+                {
+                    // ignored
+                }
+                if (this.progressCallback != null)
+                {
+                    process.BeginErrorReadLine();
+                }
+                process.WaitForExit();
             }
+
+            if (!process.HasExited)
+            {
+                process.Kill();
+            }
+
+            var fullLog = fullLogBuilder.ToString();
+            if (string.IsNullOrEmpty(fullLog))
+            {
+                fullLog = process.StandardError.ReadToEnd();
+            }
+
+            if (process.ExitCode != 0 && !this.ignoreError)
+            {
+                if (cancelled)
+                {
+                    throw new FFMpegCancelledException("Process was cancelled", $"{this.command}\r\n{fullLog}");
+                }
+                var lastFFMpegOutput = fullLog.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+                throw new FFMpegException(lastFFMpegOutput, $"{this.command}\r\n{fullLog}");
+            }
+
+            return $"{process.StartInfo.FileName} {process.StartInfo.Arguments}\r\n{fullLog}";
         }
 
         private void NotifyProgressChanged(string ffmpegProgressLog, int processId)
@@ -158,17 +139,6 @@ namespace FFMpegWrapper
                 if (TimeSpan.TryParse(progressMatch.Groups["progress"].Value, out progressInSeconds))
                 {
                     this.progressCallback(progressInSeconds.TotalSeconds, this.commandDuration.TotalSeconds, processId);
-                }
-            }
-        }
-
-        private void ClearFielsToDelete()
-        {
-            foreach (var fileToDelete in this.dependentFilesToDelete)
-            {
-                if (File.Exists(fileToDelete))
-                {
-                    File.Delete(fileToDelete);
                 }
             }
         }

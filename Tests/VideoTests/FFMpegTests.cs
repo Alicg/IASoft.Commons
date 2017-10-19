@@ -13,6 +13,8 @@ namespace VideoTests
     {
         private const string OutputFolder = "FFMpegWrapperFolder//";
 
+        private TemporaryFilesStorage temporaryFilesStorage = new TemporaryFilesStorage();
+
         [SetUp]
         public void Init()
         {
@@ -27,7 +29,7 @@ namespace VideoTests
         public void SimpleCut_Test()
         {
             const string OutputFile = OutputFolder + "Simple20SecCut_Medium.mp4";
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions = FFMpegCutOptions.BuildSimpleCatOptions(
                 @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4",
                 OutputFile,
@@ -49,7 +51,7 @@ namespace VideoTests
 
             const string Source = @"M:\SVA.Videos\POLAND VS QATAR SEMI-FINAL 24th Men's Handball World Championship Qatar 2015.mp4";
             
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions1 = FFMpegCutOptions.BuildSimpleCatOptions(Source, FileToConcat1, 100, 20, GlobalExportProgress.Empty);
             ffmpeg.Cut(cutOptions1);
             var cutOptions2 = FFMpegCutOptions.BuildSimpleCatOptions(Source, FileToConcat2, 300, 20, GlobalExportProgress.Empty);
@@ -74,7 +76,7 @@ namespace VideoTests
             const string Source1 = @"M:\SVA.Videos\HDV_1626.mp4";
             const string Source2 = @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4";
             
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions1 = FFMpegCutOptions.BuildCatOptionsWithConvertations(Source1, FileToConcat1, 300, 20, GlobalExportProgress.Empty, new Size(1280, 720));
             ffmpeg.Cut(cutOptions1);
             var cutOptions2 = FFMpegCutOptions.BuildCatOptionsWithConvertations(Source1, FileToConcat2, 500, 20, GlobalExportProgress.Empty, new Size(1280, 720));
@@ -101,7 +103,7 @@ namespace VideoTests
 
             var sw = Stopwatch.StartNew();
             
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions1 = FFMpegCutOptions.BuildCatOptionsWithConvertations(Source2, FileToConcat1, 4018, 15, GlobalExportProgress.Empty, new Size(704, 400));
             ffmpeg.Cut(cutOptions1);
             var cutOptions2 = FFMpegCutOptions.BuildCatOptionsWithConvertations(Source2, FileToConcat2, 3318, 15, GlobalExportProgress.Empty, new Size(704, 400));
@@ -119,7 +121,7 @@ namespace VideoTests
         public void DrawImageOnOneVideo()
         {
             const string OutputFile = OutputFolder + "Image20SecCut_Medium.mp4";
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
 
             var images = new List<DrawImageTimeRecord>();
             images.Add(new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4));
@@ -133,6 +135,7 @@ namespace VideoTests
         public void CleanUp()
         {
             Directory.Delete(OutputFolder, true);
+            this.temporaryFilesStorage.Dispose();
         }
     }
 }

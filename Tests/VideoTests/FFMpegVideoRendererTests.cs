@@ -200,7 +200,7 @@ namespace VideoTests
                     Console.WriteLine("{0}% {1}sec from {2}sec", percent, currentTime, estimatedTime);
                     Assert.GreaterOrEqual(currentTime, 0);
                 },
-                (totalDuration, fileName) =>
+                (totalDuration, exception) =>
                 {
                     Assert.AreEqual(1, currentProgress);
                 });
@@ -235,6 +235,27 @@ namespace VideoTests
 
             Assert.IsFalse(File.Exists(OutputFolder + "Cut1Episode_NoText_NoImages.mp4"));
         }
+
+        [Test]
+        public void Cut1Episode_NotExistedInput_ExceptionTest()
+        {
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(string.Empty, 40, 55));
+            ffmpegVideoRenderer.StartRender(
+                OutputFolder + "Cut1Episode_NoText_NoImages.mp4",
+                (s, d, currentTime, estimatedTime) =>
+                    {
+                    },
+                (d, exception) =>
+                    {
+                        var aggregateException = exception as AggregateException;
+                        var firstException = aggregateException.InnerException;
+                        Assert.IsTrue(firstException.Message.Contains("No such file or directory"));
+                    });
+            Assert.IsFalse(File.Exists(OutputFolder + "Cut1Episode_NoText_NoImages.mp4"));
+        }
+
+
 
         [TearDown]
         public void CleanUp()

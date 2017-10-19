@@ -12,18 +12,33 @@ namespace FFMpegWrapper
 {
     public class FFMpeg
     {
+        private readonly TemporaryFilesStorage temporaryFilesStorage;
+
         private readonly IObservable<double> stopSignal;
         private static readonly string pathToFfMpegExe;
         private static readonly string fontsPath;
-        public static bool DebugModeEnabled = false;
+        public static bool DebugModeEnabled = true;
         
         static FFMpeg()
         {
             const string AppDir = "";
             pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
+            var ffMpegFromResources = typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe");
+            if (ffMpegFromResources == null)
+            {
+                throw new FFMpegException("FFMpegWrapper.ffmpeg.exe wasn't found in resources.", string.Empty);
+            }
             if (!File.Exists(pathToFfMpegExe))
             {
-                typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe").WriteToFile(pathToFfMpegExe);
+                ffMpegFromResources.WriteToFile(pathToFfMpegExe);
+            }
+            else
+            {
+                var existedFileSize = new FileInfo(pathToFfMpegExe).Length;
+                if (ffMpegFromResources.Length != existedFileSize)
+                {
+                    ffMpegFromResources.WriteToFile(pathToFfMpegExe);
+                }
             }
 
             fontsPath = Path.Combine(AppDir, "arialbd.ttf");
@@ -33,15 +48,16 @@ namespace FFMpegWrapper
             }
         }
 
-        public FFMpeg(IObservable<double> stopSignal = null)
+        public FFMpeg(TemporaryFilesStorage temporaryFilesStorage, IObservable<double> stopSignal = null)
         {
+            this.temporaryFilesStorage = temporaryFilesStorage;
             this.stopSignal = stopSignal ?? Observable.Empty<double>();
         }
 
         public void Convert(string inputFile, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
-            var command = new FFMpegCommandBuilder()
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .AppendCustom("-fflags +genpts")
                 .InputFrom(inputFile)
                 .OutputVideoCodec("copy")
@@ -50,8 +66,8 @@ namespace FFMpegWrapper
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
                 .BuildCommand(pathToFfMpegExe);
-            var result = command.Execute();
-            this.LogMessage("CONVERT", result);
+
+            this.ExecuteFFMpegCommand(command, "CONVERT");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
@@ -63,7 +79,7 @@ namespace FFMpegWrapper
         public void Concat(string outputFile, Size outputSize, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
         {
             EnsureFileDoesNotExist(outputFile);
-            var command = new FFMpegCommandBuilder()
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .ConcatInputsFrom(inputFiles)
                 .OutputVideoCodec("copy")
                 .OutputAudioCodec("copy")
@@ -71,15 +87,15 @@ namespace FFMpegWrapper
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
                 .BuildCommand(pathToFfMpegExe);
-            var result = command.Execute();
-            this.LogMessage("CONCAT", result);
+
+            this.ExecuteFFMpegCommand(command, "CONCAT");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
         public void Cut(FFMpegCutOptions cutOptions)
         {
             EnsureFileDoesNotExist(cutOptions.OutputFile);
-            var cutCommandBuilder = new FFMpegCommandBuilder()
+            var cutCommandBuilder = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .StartFrom(cutOptions.Start)
                 .InputFrom(cutOptions.InputFile)
                 .DurationIs(cutOptions.Duration)
@@ -90,15 +106,13 @@ namespace FFMpegWrapper
                 cutCommandBuilder = cutCommandBuilder.OutputScale(cutOptions.OutputSize);
             }
             var command = cutCommandBuilder
-                .AppendCustom("-avoid_negative_ts 1")
+                .AppendCustom("-avoid_negative_ts 1 -max_muxing_queue_size 1000")
                 .OutputTo(cutOptions.OutputFile)
                 .WithProgressCallback(cutOptions.GlobalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
                 .BuildCommand(pathToFfMpegExe);
 
-            var result = command.Execute();
-            
-            this.LogMessage("CUT", result);
+            this.ExecuteFFMpegCommand(command, "CUT");
             cutOptions.GlobalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
@@ -107,7 +121,7 @@ namespace FFMpegWrapper
             if (!imagesTimeTable.Any())
                 return;
             EnsureFileDoesNotExist(outputFile);
-            var command = new FFMpegCommandBuilder()
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .InputFrom(inputFile)
                 .DrawImages(imagesTimeTable)
                 .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
@@ -116,8 +130,8 @@ namespace FFMpegWrapper
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
                 .BuildCommand(pathToFfMpegExe);
-            var result = command.Execute();
-            this.LogMessage("DrawImage", result);
+
+            this.ExecuteFFMpegCommand(command, "DrawImage");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
@@ -127,7 +141,7 @@ namespace FFMpegWrapper
             const int FontSize = 30;
             const int CharsInLine = 40;
             var lines = GetTranspositionedText(overlayText, CharsInLine);
-            var command = new FFMpegCommandBuilder()
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .InputFrom(inputFile)
                 .DrawText(lines, fontsPath, FontSize)
                 .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
@@ -136,8 +150,8 @@ namespace FFMpegWrapper
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
                 .BuildCommand(pathToFfMpegExe);
-            var result = command.Execute();
-            this.LogMessage("DrawText", result);
+
+            this.ExecuteFFMpegCommand(command, "DrawText");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
@@ -151,15 +165,14 @@ namespace FFMpegWrapper
             }
             var lastDot = cutOptions.InputFile.LastIndexOf('.');
             var inputExt = cutOptions.InputFile.Substring(lastDot);
-            var intermediateFile = GetIntermediateFile(inputExt);
+            var intermediateFile = this.temporaryFilesStorage.GetIntermediateFile(inputExt);
             this.Cut(cutOptions.CloneWithOtherOutput(intermediateFile));
             this.DrawText(intermediateFile, overlayText, cutOptions.OutputFile, cutOptions.GlobalExportProgress);
-            File.Delete(intermediateFile);
         }
 
         public byte[] GetBitmapFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
         {
-            var intermediateFile = GetIntermediateFile(".jpg");
+            var intermediateFile = this.temporaryFilesStorage.GetIntermediateFile(".jpg");
             try
             {
                 var quality = imageSize.ToString().ToLower();
@@ -171,8 +184,8 @@ namespace FFMpegWrapper
                     quality,
                     intermediateFile);
                 var command = new FFMpegCommand(pathToFfMpegExe, parameters, true);
-                var result = command.Execute();
-                this.LogMessage("ExtractFrame", result);
+                this.ExecuteFFMpegCommand(command, "ExtractFrame");
+                
                 using (var fs = new FileStream(intermediateFile, FileMode.Open, FileAccess.Read))
                 {
                     var byteImage = new byte[fs.Length];
@@ -187,10 +200,6 @@ namespace FFMpegWrapper
                 this.LogMessage("ExtractFrame error:", e.GetFullMessage());
                 throw;
             }
-            finally
-            {
-                File.Delete(intermediateFile);
-            }
         }
 
         public FFMpegVideoInfo GetVideoInfo(string inputFile)
@@ -202,8 +211,7 @@ namespace FFMpegWrapper
 
             // информация о видео придёт вместе с сообщением об ошибке, что не задан выходной файл.
             var command = new FFMpegCommand(pathToFfMpegExe, $"-i \"{inputFile}\"", true);
-            var result = command.Execute();
-            this.LogMessage("GetVideoInfo", result);
+            var result = this.ExecuteFFMpegCommand(command, "GetVideoInfo");
             return ParseVideoInfo(result);
         }
 
@@ -215,17 +223,32 @@ namespace FFMpegWrapper
             }
         }
 
+        private string ExecuteFFMpegCommand(FFMpegCommand command, string operationName)
+        {
+            try
+            {
+                var result = command.Execute();
+                this.LogMessage(operationName, result);
+                return result;
+            }
+            catch (FFMpegException ffMpegException)
+            {
+                this.LogMessage(operationName, ffMpegException.AllFFMpegOutput);
+                throw;
+            }
+            catch (Exception exception)
+            {
+                this.LogMessage(operationName + " UNKNOWN ERROR", exception.Message);
+                throw;
+            }
+        }
+
         private static void EnsureFileDoesNotExist(string filePath)
         {
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
             }
-        }
-
-        private static string GetIntermediateFile(string ext)
-        {
-            return Path.Combine(Directory.GetCurrentDirectory(), $"{Guid.NewGuid()}{ext}");
         }
 
         private static string[] GetTranspositionedText(string text, int charsInLine)

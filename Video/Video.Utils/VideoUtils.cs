@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ namespace Video.Utils
     {
         public FFMpegVideoInfo GetVideoInfo(string videoFilePath)
         {
-            var mhandler = new FFMpeg();
+            var mhandler = new FFMpeg(new TemporaryFilesStorage());
             return mhandler.GetVideoInfo(videoFilePath);
         }
 
@@ -22,8 +21,11 @@ namespace Video.Utils
 
         public byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
         {
-            var mhandler = new FFMpeg();
-            return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+            using (var tempFileStorage = new TemporaryFilesStorage())
+            {
+                var mhandler = new FFMpeg(tempFileStorage);
+                return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+            }
         }
 
         public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position)
@@ -36,8 +38,11 @@ namespace Video.Utils
             return await Task.Factory.StartNew(
                 () =>
                 {
-                    var mhandler = new FFMpeg();
-                    return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+                    using (var tempFileStorage = new TemporaryFilesStorage())
+                    {
+                        var mhandler = new FFMpeg(tempFileStorage);
+                        return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+                    }
                 },
                 TaskCreationOptions.RunContinuationsAsynchronously);
         }

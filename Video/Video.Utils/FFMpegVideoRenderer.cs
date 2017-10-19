@@ -20,17 +20,9 @@ namespace Video.Utils
         /// </summary>
         private readonly IList<VideoRenderOption> videoRenderOptions = new List<VideoRenderOption>();
 
-        private readonly FFMpeg ffMpeg;
-
         public FFMpegVideoRenderer(CancellationTokenSource cancellationTokenSource = null)
         {
             this.cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
-            var subject = new Subject<double>();
-
-            // ReSharper disable once ImpureMethodCallOnReadonlyValueField
-            // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
-            this.cancellationToken.Register(() => subject.OnNext(0));
-            this.ffMpeg = new FFMpeg(subject.AsObservable());
         }
 
         public void AddVideoEpisodes(params VideoRenderOption[] videoRenderOption)
@@ -53,7 +45,6 @@ namespace Video.Utils
             // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
             // Сейчас это вырезать эпизоды, нарисовать по ним текст+штрихи и в конце один раз все склеить.
             var globalExportProgress = GlobalExportProgress.BuildFromRenderOptions(this.videoRenderOptions, callbackAction);
-            this.ffMpeg.LogMessage($"Started rendering of {outputFile}", string.Empty);
             try
             {
                 try
@@ -68,7 +59,7 @@ namespace Video.Utils
                         this.cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    var episodesRenderer = new EpisodesRenderer(this.ffMpeg, this.videoRenderOptions, outputFile, outputSize, globalExportProgress, this.cancellationToken);
+                    var episodesRenderer = new EpisodesRenderer(this.videoRenderOptions, outputFile, outputSize, globalExportProgress, this.cancellationToken);
                     episodesRenderer.ProcessRenderOptions();
 
                     finishAction?.Invoke((DateTime.Now - renderStart).TotalMilliseconds, null);
