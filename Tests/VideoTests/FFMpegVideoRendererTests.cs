@@ -113,7 +113,7 @@ namespace VideoTests
             const string Output = OutputFolder + "Cut3Episodes_DifferentFormat_NoText_NoImages.mkv";
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\Байдарки 07.08.2016\GOPR0041.MP4", 0, 15, null, null));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\MyPhotoVideo\2016.08.07 Байдарки\GOPR0041.MP4", 0, 15, null, null));
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1250, 15, null, null));
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", 140, 15, null, null));
             ffmpegVideoRenderer.StartRender(Output, new Size(1280, 720));

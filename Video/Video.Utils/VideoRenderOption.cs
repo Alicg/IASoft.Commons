@@ -6,6 +6,16 @@
 
     public class VideoRenderOption
     {
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText, List<DrawImageTimeRecord> imagesTimeTable, List<TimeWarpSettings> timeWarpSettings)
+        {
+            this.OverlayText = overlayText;
+            this.StartSecond = startSecond;
+            this.DurationSeconds = durationSeconds;
+            this.FilePath = filePath;
+            this.ImagesTimeTable = imagesTimeTable;
+            this.TimeWarpSettings = timeWarpSettings;
+        }
+
         public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText, List<DrawImageTimeRecord> imagesTimeTable)
         {
             this.OverlayText = overlayText;
@@ -15,11 +25,13 @@
             this.ImagesTimeTable = imagesTimeTable;
         }
 
-        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText) : this(filePath, startSecond, durationSeconds, overlayText, new List<DrawImageTimeRecord>())
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText)
+            : this(filePath, startSecond, durationSeconds, overlayText, new List<DrawImageTimeRecord>())
         {
         }
 
-        public VideoRenderOption(string filePath, double startSecond, double durationSeconds) : this(filePath, startSecond, durationSeconds, string.Empty)
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds)
+            : this(filePath, startSecond, durationSeconds, string.Empty)
         {
         }
 
@@ -32,5 +44,7 @@
         public string OverlayText { get; }
 
         public List<DrawImageTimeRecord> ImagesTimeTable { get; }
+
+        public List<TimeWarpSettings> TimeWarpSettings { get; }
     }
 }

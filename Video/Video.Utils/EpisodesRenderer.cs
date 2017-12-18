@@ -47,22 +47,20 @@ namespace Video.Utils
                 ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
                 var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage);
-            
-                Parallel.ForEach(
-                    this.videoRenderOptions,
-                    renderOption =>
-                    {
-                        if (this.cancellationToken.IsCancellationRequested)
-                        {
-                            this.cancellationToken.ThrowIfCancellationRequested();
-                        }
 
-                        var cutOptions = cutOptionsBuilder.CutOptions[renderOption];
-                        
-                        // ReSharper disable once AccessToDisposedClosure
-                        // выполнение замыкания всегда будет происходить до Dispose.
-                        this.CutAndDrawTextAndDrawImage(ffMpeg, cutOptions, renderOption.OverlayText, renderOption.ImagesTimeTable, temporaryFilesStorage);
-                    });
+                Parallel.ForEach(
+                    cutOptionsBuilder.CutOptions,
+                    cutOptions =>
+                        {
+                            if (this.cancellationToken.IsCancellationRequested)
+                            {
+                                this.cancellationToken.ThrowIfCancellationRequested();
+                            }
+
+                            // ReSharper disable once AccessToDisposedClosure
+                            // выполнение замыкания всегда будет происходить до Dispose.
+                            this.CutAndDrawTextAndDrawImageAndApplyTimeWarp(ffMpeg, cutOptions, temporaryFilesStorage);
+                        });
 
                 if (cutOptionsBuilder.FilesToConcat.Count == 1)
                 {
@@ -82,17 +80,16 @@ namespace Video.Utils
             }
         }
 
-        private void CutAndDrawTextAndDrawImage(
+        private void CutAndDrawTextAndDrawImageAndApplyTimeWarp(
             FFMpeg ffMpeg,
             FFMpegCutOptions cutOptions,
-            string overlayText,
-            List<DrawImageTimeRecord> imagesTimeTable,
             TemporaryFilesStorage temporaryFilesStorage)
         {
             EnsureFileDoesNotExist(cutOptions.OutputFile);
             var extensionForResultFile = Path.GetExtension(cutOptions.OutputFile);
-            var imagesExist = imagesTimeTable != null && imagesTimeTable.Any();
-            if (string.IsNullOrEmpty(overlayText) && !imagesExist)
+            var imagesExist = cutOptions.ImagesTimeTable != null && cutOptions.ImagesTimeTable.Any();
+            var timeWarpExists = Math.Abs(cutOptions.TimeWarpCoefficient - 1) > double.Epsilon;
+            if (string.IsNullOrEmpty(cutOptions.OverlayText) && !imagesExist && !timeWarpExists)
             {
                 ffMpeg.Cut(cutOptions);
                 return;
@@ -101,16 +98,23 @@ namespace Video.Utils
 
             ffMpeg.Cut(cutOptions.CloneWithOtherOutput(intermediateFile1));
 
-            if (!string.IsNullOrEmpty(overlayText))
+            if (!string.IsNullOrEmpty(cutOptions.OverlayText))
             {
-                var intermediateFile2 = imagesExist ? temporaryFilesStorage.GetIntermediateFile(extensionForResultFile) : cutOptions.OutputFile;
-                ffMpeg.DrawText(intermediateFile1, overlayText, intermediateFile2, cutOptions.GlobalExportProgress);
+                var intermediateFile2 = (imagesExist || timeWarpExists) ? temporaryFilesStorage.GetIntermediateFile(extensionForResultFile) : cutOptions.OutputFile;
+                ffMpeg.DrawText(intermediateFile1, cutOptions.OverlayText, intermediateFile2, cutOptions.GlobalExportProgress);
                 File.Delete(intermediateFile1);
                 intermediateFile1 = intermediateFile2;
             }
             if (imagesExist)
             {
-                ffMpeg.DrawImage(intermediateFile1, imagesTimeTable, cutOptions.OutputFile, cutOptions.GlobalExportProgress);
+                var intermediateFile3 = timeWarpExists ? temporaryFilesStorage.GetIntermediateFile(extensionForResultFile) : cutOptions.OutputFile;
+                ffMpeg.DrawImage(intermediateFile1, cutOptions.ImagesTimeTable, intermediateFile3, cutOptions.GlobalExportProgress);
+                File.Delete(intermediateFile1);
+                intermediateFile1 = intermediateFile3;
+            }
+            if (timeWarpExists)
+            {
+                ffMpeg.ApplyTimeWarp(intermediateFile1, cutOptions.TimeWarpCoefficient, cutOptions.OutputFile, this.globalExportProgress);
                 File.Delete(intermediateFile1);
             }
         }

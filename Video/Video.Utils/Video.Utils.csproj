@@ -68,6 +68,7 @@
     <Compile Include="IVideoRenderer.cs" />
     <Compile Include="IVideoUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TimeWarpSettings.cs" />
     <Compile Include="VideoRenderOption.cs" />
     <Compile Include="VideoUtils.cs" />
   </ItemGroup>

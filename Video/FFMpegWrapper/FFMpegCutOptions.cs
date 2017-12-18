@@ -2,12 +2,23 @@
 
 namespace FFMpegWrapper
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class FFMpegCutOptions
     {
         public const string DefaultVideoCodec = "libx264";
+
         public const string DefaultAudioCodec = "aac";
-        
-        private FFMpegCutOptions(string inputFile, string outputFile, double start, double duration, string videoCodec, string audioCodec, IGlobalExportProgress globalExportProgress)
+
+        private FFMpegCutOptions(
+            string inputFile,
+            string outputFile,
+            double start,
+            double duration,
+            string videoCodec,
+            string audioCodec,
+            IGlobalExportProgress globalExportProgress)
         {
             this.InputFile = inputFile;
             this.OutputFile = outputFile;
@@ -27,10 +38,17 @@ namespace FFMpegWrapper
             IGlobalExportProgress globalExportProgress,
             Size outputSize,
             string videoCodec,
-            string audioCodec) : this(inputFile, outputFile, start, duration, videoCodec, audioCodec, globalExportProgress)
+            string audioCodec,
+            string overlayText,
+            IEnumerable<DrawImageTimeRecord> imagesTimeTable,
+            IEnumerable<TimeWarpRecord> timeWarps)
+            : this(inputFile, outputFile, start, duration, videoCodec, audioCodec, globalExportProgress)
         {
             this.OutputSize = outputSize;
             this.SimpleMode = false;
+            this.OverlayText = overlayText;
+            this.ImagesTimeTable = imagesTimeTable == null ? null : new List<DrawImageTimeRecord>(imagesTimeTable);
+            this.TimeWarps = timeWarps == null ? null : new List<TimeWarpRecord>(timeWarps);
         }
 
         public string InputFile { get; }
@@ -48,8 +66,14 @@ namespace FFMpegWrapper
         public string VideoCodec { get; }
 
         public string AudioCodec { get; }
-        
+
         public bool SimpleMode { get; }
+
+        public string OverlayText { get; }
+
+        public List<DrawImageTimeRecord> ImagesTimeTable { get; }
+
+        public List<TimeWarpRecord> TimeWarps { get; }
 
         public static FFMpegCutOptions BuildSimpleCatOptions(
             string inputFile,
@@ -69,7 +93,31 @@ namespace FFMpegWrapper
             IGlobalExportProgress globalExportProgress,
             Size outputSize)
         {
-            return new FFMpegCutOptions(inputFile, outputFile, start, duration, globalExportProgress, outputSize, DefaultVideoCodec, DefaultAudioCodec);
+            return new FFMpegCutOptions(inputFile, outputFile, start, duration, globalExportProgress, outputSize, DefaultVideoCodec, DefaultAudioCodec, null, null, null);
+        }
+
+        public static FFMpegCutOptions BuildCatOptionsWithConvertations(
+            string inputFile,
+            string outputFile,
+            double start,
+            double duration,
+            IGlobalExportProgress globalExportProgress,
+            Size outputSize,
+            string overlayText,
+            List<DrawImageTimeRecord> images)
+        {
+            return new FFMpegCutOptions(
+                inputFile,
+                outputFile,
+                start,
+                duration,
+                globalExportProgress,
+                outputSize,
+                DefaultVideoCodec,
+                DefaultAudioCodec,
+                overlayText,
+                images,
+                null);
         }
 
         public static FFMpegCutOptions BuildCatOptionsWithConvertations(
@@ -80,9 +128,22 @@ namespace FFMpegWrapper
             IGlobalExportProgress globalExportProgress,
             Size outputSize,
             string videoCodec,
-            string audioCodec)
+            string audioCodec,
+            string overlayText,
+            List<DrawImageTimeRecord> images)
         {
-            return new FFMpegCutOptions(inputFile, outputFile, start, duration, globalExportProgress, outputSize, videoCodec, audioCodec);
+            return new FFMpegCutOptions(
+                inputFile,
+                outputFile,
+                start,
+                duration,
+                globalExportProgress,
+                outputSize,
+                videoCodec,
+                audioCodec,
+                overlayText,
+                images,
+                null);
         }
 
         public FFMpegCutOptions CloneWithOtherOutput(string outputFile)
@@ -90,12 +151,22 @@ namespace FFMpegWrapper
             return new FFMpegCutOptions(
                 this.InputFile,
                 outputFile,
-                this.Start,
-                this.Duration,
+                startSecond,
+                duration,
                 this.GlobalExportProgress,
                 this.OutputSize,
                 this.VideoCodec,
-                this.AudioCodec);
+                this.AudioCodec,
+                this.OverlayText,
+                newImagesTimeTable,
+                timeWarpCof);
+        }
+
+        public FFMpegCutOptions CloneWithTimeWarp(string outputFile, double timeWarpCof, double startSecond, double duration)
+        {
+            var newImagesTimeTable = this.ImagesTimeTable?.Except(this.ImagesTimeTable.Where(v => v.ImageStartSecond >= (startSecond + duration) || v.ImageEndSecond <= startSecond))
+                .Select(v => new DrawImageTimeRecord(v.ImageData, v.LeftOffset, v.TopOffset, v.ImageStartSecond - startSecond, v.ImageEndSecond - startSecond));
+
         }
     }
 }

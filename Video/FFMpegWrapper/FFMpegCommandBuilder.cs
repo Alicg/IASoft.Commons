@@ -150,6 +150,12 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder ApplyTimeWarp(double coefficient)
+        {
+            this.parametersAccumulator.Append($" -filter:v \"setpts = {coefficient.ToString(CultureInfo.InvariantCulture)} * PTS\" -an");
+            return this;
+        }
+
         public FFMpegCommandBuilder OutputAudioCodec(string outputCodec)
         {
             this.parametersAccumulator.AppendFormat(" -c:a {0} ", outputCodec);

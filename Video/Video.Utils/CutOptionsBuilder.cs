@@ -17,9 +17,9 @@ namespace Video.Utils
             this.BuildCutOptions(videoRenderOptions, outputSize, globalExportProgress);
         }
 
-        public Dictionary<VideoRenderOption, FFMpegCutOptions> CutOptions { get; } = new Dictionary<VideoRenderOption, FFMpegCutOptions>();
+        public IList<FFMpegCutOptions> CutOptions { get; } = new List<FFMpegCutOptions>();
         
-        public IList<string> FilesToConcat = new List<string>();
+        public IList<string> FilesToConcat { get; } = new List<string>();
         
         public string OutputExtension { get; private set; }
 
@@ -28,11 +28,23 @@ namespace Video.Utils
             // mkv файлы потом без проблем склеиваются в конкате. mp4, например, склеивается с артефактами.
             const string DefaultCutTempContainer = ".mkv";
 
+            var plainConcatIsPossible = this.CheckWhetherPlainConcatIsPossible(videoRenderOptions);
+
+            this.OutputExtension = plainConcatIsPossible ? Path.GetExtension(videoRenderOptions.First().FilePath) : DefaultCutTempContainer;
+
+            foreach (var videoRenderOption in videoRenderOptions)
+            {
+                this.ProcessRenderOptions(videoRenderOption, plainConcatIsPossible, globalExportProgress, outputSize);
+            }
+        }
+
+        private bool CheckWhetherPlainConcatIsPossible(IList<VideoRenderOption> videoRenderOptions)
+        {
             // если все эпизоды из одного видео, то их нарезка и склейка не требуют перекодирования.
             var plainConcatIsPossible = videoRenderOptions.Distinct(v => v.FilePath).Count() == 1;
             if (plainConcatIsPossible)
             {
-                if (videoRenderOptions.Any(v => v.ImagesTimeTable.Any() || !string.IsNullOrEmpty(v.OverlayText)))
+                if (videoRenderOptions.Any(v => v.ImagesTimeTable.Any() || !string.IsNullOrEmpty(v.OverlayText) || v.TimeWarpSettings.Any()))
                 {
                     plainConcatIsPossible = false;
                 }
@@ -43,27 +55,68 @@ namespace Video.Utils
                     plainConcatIsPossible = false;
                 }
             }
-            this.OutputExtension = plainConcatIsPossible ? Path.GetExtension(videoRenderOptions.First().FilePath) : DefaultCutTempContainer;
+            return plainConcatIsPossible;
+        }
 
-            foreach (var videoRenderOption in videoRenderOptions)
+        private void ProcessRenderOptions(VideoRenderOption videoRenderOption, bool plainConcatIsPossible, IGlobalExportProgress globalExportProgress, Size outputSize)
+        {
+            var tempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
+
+            var cutOptions = plainConcatIsPossible
+                                 ? FFMpegCutOptions.BuildSimpleCatOptions(
+                                     videoRenderOption.FilePath,
+                                     tempFile,
+                                     videoRenderOption.StartSecond,
+                                     videoRenderOption.DurationSeconds,
+                                     globalExportProgress)
+                                 : FFMpegCutOptions.BuildCatOptionsWithConvertations(
+                                     videoRenderOption.FilePath,
+                                     tempFile,
+                                     videoRenderOption.StartSecond,
+                                     videoRenderOption.DurationSeconds,
+                                     globalExportProgress,
+                                     outputSize,
+                                     videoRenderOption.OverlayText,
+                                     videoRenderOption.ImagesTimeTable);
+
+            if (videoRenderOption.TimeWarpSettings.Any())
             {
-                var tempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
+                foreach (var timeWarpSettings in videoRenderOption.TimeWarpSettings)
+                {
+                    // если time warp начинается практически сразу, то нет смысла вырезать маленький кусочек в нормальной скорости.
+                    if (timeWarpSettings.StartSecond > 0.5)
+                    {
+                        var newTempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
+                        var cutOptionBeforeWarp = cutOptions.CloneWithTimeWarp(newTempFile, 1, 0, timeWarpSettings.StartSecond);
+                        this.CutOptions.Add(cutOptionBeforeWarp);
+                        this.FilesToConcat.Add(newTempFile);
+                    }
 
-                var cutOptions = plainConcatIsPossible
-                    ? FFMpegCutOptions.BuildSimpleCatOptions(
-                        videoRenderOption.FilePath,
+                    var cutOptionWarp = cutOptions.CloneWithTimeWarp(
                         tempFile,
-                        videoRenderOption.StartSecond,
-                        videoRenderOption.DurationSeconds,
-                        globalExportProgress)
-                    : FFMpegCutOptions.BuildCatOptionsWithConvertations(
-                        videoRenderOption.FilePath,
-                        tempFile,
-                        videoRenderOption.StartSecond,
-                        videoRenderOption.DurationSeconds,
-                        globalExportProgress,
-                        outputSize);
-                this.CutOptions.Add(videoRenderOption, cutOptions);
+                        timeWarpSettings.Coefficient,
+                        timeWarpSettings.StartSecond,
+                        timeWarpSettings.EndSecond - timeWarpSettings.StartSecond);
+                    this.CutOptions.Add(cutOptionWarp);
+                    this.FilesToConcat.Add(tempFile);
+
+                    // если time warp заканчивается практически вместе с эпизодом, то нет смысла вырезать маленький кусочек в нормальной скорости.
+                    if ((videoRenderOption.DurationSeconds - timeWarpSettings.EndSecond) > 0.5)
+                    {
+                        var newTempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
+                        var cutOptionBeforeWarp = cutOptions.CloneWithTimeWarp(
+                            newTempFile,
+                            1,
+                            timeWarpSettings.EndSecond,
+                            videoRenderOption.DurationSeconds - timeWarpSettings.EndSecond);
+                        this.CutOptions.Add(cutOptionBeforeWarp);
+                        this.FilesToConcat.Add(newTempFile);
+                    }
+                }
+            }
+            else
+            {
+                this.CutOptions.Add(cutOptions);
                 this.FilesToConcat.Add(tempFile);
             }
         }
