@@ -155,12 +155,12 @@ namespace FFMpegWrapper
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
-        public void ApplyTimeWarp(string inputFile, double timeWarpCoefficient, string outputFile, IGlobalExportProgress globalExportProgress)
+        public void ApplyTimeWarp(string inputFile, IEnumerable<TimeWarpRecord> timeWarps, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
             var cutCommandBuilder = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .InputFrom(inputFile)
-                .ApplyTimeWarp(timeWarpCoefficient)
+                .ApplyTimeWarp(timeWarps)
                 //.AppendCustom("-avoid_negative_ts 1 -max_muxing_queue_size 1000")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)

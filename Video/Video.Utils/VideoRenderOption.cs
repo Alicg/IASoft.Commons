@@ -6,7 +6,13 @@
 
     public class VideoRenderOption
     {
-        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText, List<DrawImageTimeRecord> imagesTimeTable, List<TimeWarpSettings> timeWarpSettings)
+        public VideoRenderOption(
+            string filePath,
+            double startSecond,
+            double durationSeconds,
+            string overlayText,
+            List<DrawImageTimeRecord> imagesTimeTable,
+            List<TimeWarpRecord> timeWarpSettings)
         {
             this.OverlayText = overlayText;
             this.StartSecond = startSecond;
@@ -45,6 +51,6 @@
 
         public List<DrawImageTimeRecord> ImagesTimeTable { get; }
 
-        public List<TimeWarpSettings> TimeWarpSettings { get; }
+        public List<TimeWarpRecord> TimeWarpSettings { get; }
     }
 }

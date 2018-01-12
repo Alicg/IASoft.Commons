@@ -88,7 +88,7 @@ namespace Video.Utils
             EnsureFileDoesNotExist(cutOptions.OutputFile);
             var extensionForResultFile = Path.GetExtension(cutOptions.OutputFile);
             var imagesExist = cutOptions.ImagesTimeTable != null && cutOptions.ImagesTimeTable.Any();
-            var timeWarpExists = Math.Abs(cutOptions.TimeWarpCoefficient - 1) > double.Epsilon;
+            var timeWarpExists = cutOptions.TimeWarps != null && cutOptions.TimeWarps.Any();
             if (string.IsNullOrEmpty(cutOptions.OverlayText) && !imagesExist && !timeWarpExists)
             {
                 ffMpeg.Cut(cutOptions);
@@ -114,7 +114,7 @@ namespace Video.Utils
             }
             if (timeWarpExists)
             {
-                ffMpeg.ApplyTimeWarp(intermediateFile1, cutOptions.TimeWarpCoefficient, cutOptions.OutputFile, this.globalExportProgress);
+                ffMpeg.ApplyTimeWarp(intermediateFile1, cutOptions.TimeWarps, cutOptions.OutputFile, this.globalExportProgress);
                 File.Delete(intermediateFile1);
             }
         }

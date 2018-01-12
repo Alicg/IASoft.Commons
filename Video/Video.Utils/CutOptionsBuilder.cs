@@ -77,48 +77,11 @@ namespace Video.Utils
                                      globalExportProgress,
                                      outputSize,
                                      videoRenderOption.OverlayText,
-                                     videoRenderOption.ImagesTimeTable);
+                                     videoRenderOption.ImagesTimeTable,
+                                     videoRenderOption.TimeWarpSettings);
 
-            if (videoRenderOption.TimeWarpSettings.Any())
-            {
-                foreach (var timeWarpSettings in videoRenderOption.TimeWarpSettings)
-                {
-                    // если time warp начинается практически сразу, то нет смысла вырезать маленький кусочек в нормальной скорости.
-                    if (timeWarpSettings.StartSecond > 0.5)
-                    {
-                        var newTempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
-                        var cutOptionBeforeWarp = cutOptions.CloneWithTimeWarp(newTempFile, 1, 0, timeWarpSettings.StartSecond);
-                        this.CutOptions.Add(cutOptionBeforeWarp);
-                        this.FilesToConcat.Add(newTempFile);
-                    }
-
-                    var cutOptionWarp = cutOptions.CloneWithTimeWarp(
-                        tempFile,
-                        timeWarpSettings.Coefficient,
-                        timeWarpSettings.StartSecond,
-                        timeWarpSettings.EndSecond - timeWarpSettings.StartSecond);
-                    this.CutOptions.Add(cutOptionWarp);
-                    this.FilesToConcat.Add(tempFile);
-
-                    // если time warp заканчивается практически вместе с эпизодом, то нет смысла вырезать маленький кусочек в нормальной скорости.
-                    if ((videoRenderOption.DurationSeconds - timeWarpSettings.EndSecond) > 0.5)
-                    {
-                        var newTempFile = this.temporaryFilesStorage.GetIntermediateFile(this.OutputExtension);
-                        var cutOptionBeforeWarp = cutOptions.CloneWithTimeWarp(
-                            newTempFile,
-                            1,
-                            timeWarpSettings.EndSecond,
-                            videoRenderOption.DurationSeconds - timeWarpSettings.EndSecond);
-                        this.CutOptions.Add(cutOptionBeforeWarp);
-                        this.FilesToConcat.Add(newTempFile);
-                    }
-                }
-            }
-            else
-            {
-                this.CutOptions.Add(cutOptions);
-                this.FilesToConcat.Add(tempFile);
-            }
+            this.CutOptions.Add(cutOptions);
+            this.FilesToConcat.Add(tempFile);
         }
     }
 }

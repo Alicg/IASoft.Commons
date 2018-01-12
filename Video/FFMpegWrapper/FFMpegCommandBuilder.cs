@@ -69,7 +69,7 @@ namespace FFMpegWrapper
             var filterComplexBuilder = new StringBuilder();
             using (var sw = new StreamWriter(intermediateFile))
             {
-                for (int index = 0; index < filesToConcat.Length; index++)
+                for (var index = 0; index < filesToConcat.Length; index++)
                 {
                     var inputFile = filesToConcat[index];
                     sw.WriteLine("file '{0}'", inputFile);
@@ -150,9 +150,32 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommandBuilder ApplyTimeWarp(double coefficient)
+        public FFMpegCommandBuilder ApplyTimeWarp(IEnumerable<TimeWarpRecord> timeWarpRecords)
         {
-            this.parametersAccumulator.Append($" -filter:v \"setpts = {coefficient.ToString(CultureInfo.InvariantCulture)} * PTS\" -an");
+            const string trimTemplate = "[0:v]trim={0}:{1},setpts=PTS-STARTPTS[v{2}];";
+            const string timeWarpTemplate = "[v{0}]setpts=PTS*{1}[timewarp{0}];";
+            var trims = string.Empty;
+            var warps = string.Empty;
+            var merges = string.Empty;
+            double previousTrimEnd = 0;
+            int trimIndex = 1;
+            var warpRecords = timeWarpRecords as TimeWarpRecord[] ?? timeWarpRecords.ToArray();
+            foreach (var timeWarpRecord in warpRecords)
+            {
+                trims += string.Format(CultureInfo.InvariantCulture, trimTemplate, previousTrimEnd, timeWarpRecord.StartSecond, trimIndex);
+                merges += $"[v{trimIndex}]";
+                trimIndex++;
+
+                trims += string.Format(CultureInfo.InvariantCulture, trimTemplate, timeWarpRecord.StartSecond, timeWarpRecord.EndSecond, trimIndex);
+                warps += string.Format(CultureInfo.InvariantCulture, timeWarpTemplate, trimIndex, timeWarpRecord.Coefficient);
+                merges += $"[timewarp{trimIndex}]";
+
+                trimIndex++;
+                previousTrimEnd = timeWarpRecord.EndSecond;
+            }
+            trims += string.Format(CultureInfo.InvariantCulture, "[0:v]trim=start={0},setpts=PTS-STARTPTS[v{1}];", previousTrimEnd, trimIndex);
+            merges += $"[v{trimIndex}]";
+            this.parametersAccumulator.Append($" -filter_complex \"{trims} {warps} {merges}concat=n={warpRecords.Length * 2 + 1}:v=1:a=0[out]\" -map [out] ");
             return this;
         }
 

@@ -73,11 +73,14 @@ namespace Video.Utils
             // по одной операции для вырезания каждого эпизода.
             var totalOperationsExpected = videoRenderOptions.Count;
 
-            // по одной операции для каждой отрисовки текста на эпизоде.
+            // по одной операции для каждого эпизода с текстом.
             totalOperationsExpected += videoRenderOptions.Count(v => !string.IsNullOrEmpty(v.OverlayText));
 
-            // по одной операции для каждой отрисовки штрихов на эпизоде.
+            // по одной операции для каждого эпизода со штрихами.
             totalOperationsExpected += videoRenderOptions.Count(v => v.ImagesTimeTable != null && v.ImagesTimeTable.Any());
+
+            // по одной операции для каждого эпизода с эффектами времени.
+            totalOperationsExpected += videoRenderOptions.Count(v => v.TimeWarpSettings != null && v.TimeWarpSettings.Any());
 
             if (videoRenderOptions.Count > 1)
             {

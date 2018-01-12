@@ -3,7 +3,6 @@
 namespace FFMpegWrapper
 {
     using System.Collections.Generic;
-    using System.Linq;
 
     public class FFMpegCutOptions
     {
@@ -104,7 +103,8 @@ namespace FFMpegWrapper
             IGlobalExportProgress globalExportProgress,
             Size outputSize,
             string overlayText,
-            List<DrawImageTimeRecord> images)
+            List<DrawImageTimeRecord> images,
+            List<TimeWarpRecord> timeWarps)
         {
             return new FFMpegCutOptions(
                 inputFile,
@@ -117,7 +117,7 @@ namespace FFMpegWrapper
                 DefaultAudioCodec,
                 overlayText,
                 images,
-                null);
+                timeWarps);
         }
 
         public static FFMpegCutOptions BuildCatOptionsWithConvertations(
@@ -130,7 +130,8 @@ namespace FFMpegWrapper
             string videoCodec,
             string audioCodec,
             string overlayText,
-            List<DrawImageTimeRecord> images)
+            List<DrawImageTimeRecord> images,
+            List<TimeWarpRecord> timeWarps)
         {
             return new FFMpegCutOptions(
                 inputFile,
@@ -143,7 +144,7 @@ namespace FFMpegWrapper
                 audioCodec,
                 overlayText,
                 images,
-                null);
+                timeWarps);
         }
 
         public FFMpegCutOptions CloneWithOtherOutput(string outputFile)
@@ -151,22 +152,15 @@ namespace FFMpegWrapper
             return new FFMpegCutOptions(
                 this.InputFile,
                 outputFile,
-                startSecond,
-                duration,
+                this.Start,
+                this.Duration,
                 this.GlobalExportProgress,
                 this.OutputSize,
                 this.VideoCodec,
                 this.AudioCodec,
                 this.OverlayText,
-                newImagesTimeTable,
-                timeWarpCof);
-        }
-
-        public FFMpegCutOptions CloneWithTimeWarp(string outputFile, double timeWarpCof, double startSecond, double duration)
-        {
-            var newImagesTimeTable = this.ImagesTimeTable?.Except(this.ImagesTimeTable.Where(v => v.ImageStartSecond >= (startSecond + duration) || v.ImageEndSecond <= startSecond))
-                .Select(v => new DrawImageTimeRecord(v.ImageData, v.LeftOffset, v.TopOffset, v.ImageStartSecond - startSecond, v.ImageEndSecond - startSecond));
-
+                this.ImagesTimeTable,
+                this.TimeWarps);
         }
     }
 }
