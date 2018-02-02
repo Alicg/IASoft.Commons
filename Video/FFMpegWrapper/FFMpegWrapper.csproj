@@ -81,7 +81,9 @@
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
     <Compile Include="TemporaryFilesStorage.cs" />
+    <Compile Include="TextTimeRecord.cs" />
     <Compile Include="TimeWarpRecord.cs" />
+    <Compile Include="VideoInfoParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ffmpeg.exe" />

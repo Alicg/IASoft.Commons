@@ -42,7 +42,7 @@
                     new List<TimeWarpRecord> { new TimeWarpRecord(2, 4, 7) }));
             ffmpegVideoRenderer.AddVideoEpisodes(
                 new VideoRenderOption(
-                    @"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi",
+                    SampleFiles.RealInputVideoAVI,
                     1250,
                     15,
                     null,

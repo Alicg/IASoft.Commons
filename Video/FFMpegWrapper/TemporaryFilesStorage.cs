@@ -17,10 +17,15 @@ namespace FFMpegWrapper
 
         public void Dispose()
         {
+#if !DEBUG
             foreach (var intermediateFile in this.temporaryFiles)
             {
-                File.Delete(intermediateFile);
+                if (File.Exists(intermediateFile))
+                {
+                    File.Delete(intermediateFile);
+                }
             }
+#endif
         }
     }
 }

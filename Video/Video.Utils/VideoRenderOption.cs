@@ -10,11 +10,11 @@
             string filePath,
             double startSecond,
             double durationSeconds,
-            string overlayText,
+            List<TextTimeRecord> overlayText,
             List<DrawImageTimeRecord> imagesTimeTable,
             List<TimeWarpRecord> timeWarpSettings)
         {
-            this.OverlayText = overlayText;
+            this.OverlayTextTimeTable = overlayText;
             this.StartSecond = startSecond;
             this.DurationSeconds = durationSeconds;
             this.FilePath = filePath;
@@ -22,22 +22,18 @@
             this.TimeWarpSettings = timeWarpSettings;
         }
 
-        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText, List<DrawImageTimeRecord> imagesTimeTable)
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, List<TextTimeRecord> overlayText, List<DrawImageTimeRecord> imagesTimeTable)
+            : this(filePath, startSecond, durationSeconds, overlayText, imagesTimeTable, new List<TimeWarpRecord>())
         {
-            this.OverlayText = overlayText;
-            this.StartSecond = startSecond;
-            this.DurationSeconds = durationSeconds;
-            this.FilePath = filePath;
-            this.ImagesTimeTable = imagesTimeTable;
         }
 
-        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, string overlayText)
+        public VideoRenderOption(string filePath, double startSecond, double durationSeconds, List<TextTimeRecord> overlayText)
             : this(filePath, startSecond, durationSeconds, overlayText, new List<DrawImageTimeRecord>())
         {
         }
 
         public VideoRenderOption(string filePath, double startSecond, double durationSeconds)
-            : this(filePath, startSecond, durationSeconds, string.Empty)
+            : this(filePath, startSecond, durationSeconds, new List<TextTimeRecord>())
         {
         }
 
@@ -45,9 +41,9 @@
 
         public double StartSecond { get; }
 
-        public double DurationSeconds { get; }
+        public double DurationSeconds { get; set; }
 
-        public string OverlayText { get; }
+        public List<TextTimeRecord> OverlayTextTimeTable { get; }
 
         public List<DrawImageTimeRecord> ImagesTimeTable { get; }
 

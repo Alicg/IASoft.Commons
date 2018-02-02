@@ -54,13 +54,71 @@ namespace VideoTests
         }
 
         [Test]
-        public void Cut2Episodes_NoText_NoImages_Test()
+        public void Cut6Episodes_WithText_NoImages_DIVX_Test()
         {
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 95, 5));
-            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2Episodes_NoText_NoImages.mp4");
-            Assert.IsTrue(File.Exists(OutputFolder + "Cut2Episodes_NoText_NoImages.mp4"));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("First", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Second", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Third", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Fourth", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Fifth", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                95,
+                5,
+                new List<TextTimeRecord> {new TextTimeRecord("Sixth", 0, 5)}));
+            var stopWatch = Stopwatch.StartNew();
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2Episodes_WithText_NoImages.mp4");
+            Console.Write(stopWatch.Elapsed);
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut2Episodes_WithText_NoImages.mp4"));
+        }
+
+        [Test]
+        public void Cut6Episodes_WithText_NoImages_MP4_Test()
+        {
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("First", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Second", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                1200,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Third", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                1000,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Fourth", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                1200,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Fifth", 0, 15)}));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoMP4,
+                95,
+                5,
+                new List<TextTimeRecord> {new TextTimeRecord("Sixth", 0, 5)}));
+            var stopWatch = Stopwatch.StartNew();
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2Episodes_WithText_NoImages.mp4");
+            Console.Write(stopWatch.Elapsed);
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut2Episodes_WithText_NoImages.mp4"));
         }
 
         [Test]
@@ -69,11 +127,11 @@ namespace VideoTests
             const string Output = OutputFolder + "Cut5Episodes_NoText_NoImages.mkv";
             var sw = Stopwatch.StartNew(); 
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1250, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 750, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 550, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 350, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1750, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1250, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 750, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 550, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 350, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1750, 15));
             ffmpegVideoRenderer.StartRender(Output);
             sw.Stop();
             Assert.IsTrue(File.Exists(Output));
@@ -81,16 +139,16 @@ namespace VideoTests
         }
 
         [Test]
-        public void Cut5Episodes_SameSource_NoText_NoImages_ProgressTest()
+        public void Cut5Episodes_SameSource_WithText_NoImages_ProgressTest()
         {
             const string Output = OutputFolder + "Cut5Episodes_NoText_NoImages.mkv";
             var sw = Stopwatch.StartNew(); 
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1250, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 750, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 550, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 350, 15));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1750, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1250, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 750, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 550, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 350, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1750, 15));
 
             double previousProgress = 0;
             ffmpegVideoRenderer.StartRender(
@@ -113,9 +171,9 @@ namespace VideoTests
             const string Output = OutputFolder + "Cut3Episodes_DifferentFormat_NoText_NoImages.mkv";
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\MyPhotoVideo\2016.08.07 Байдарки\GOPR0041.MP4", 0, 15, null, null));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\Гандбол. ЛЧ. Муж. 4-й тур. Монпелье-Мишки. Рутрекер орг. 15.10.2016.avi", 1250, 15, null, null));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4", 140, 15, null, null));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI2, 0, 15, null, null));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1250, 15, null, null));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI2, 140, 15, null, null));
             ffmpegVideoRenderer.StartRender(Output, new Size(1280, 720));
             sw.Stop();
             Thread.Sleep(1000);//чтобы лог закончил заполняться.
@@ -133,12 +191,92 @@ namespace VideoTests
         }
 
         [Test]
+        public void Cut25Episodes_WithText_NoImages_PerformanceTest()
+        {
+            var sw = Stopwatch.StartNew();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            int totalDuration = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(
+                    SampleFiles.RealInputVideoAVI,
+                    totalDuration,
+                    15,
+                    new List<TextTimeRecord> {new TextTimeRecord(i.ToString(), 0, 15)}));
+                totalDuration += 30;
+            }
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut25Episodes_WithText_NoImages.mp4");
+            sw.Stop();
+            //Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 0, 20), sw.Elapsed.ToString());
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut25Episodes_WithText_NoImages.mp4"));
+        }
+
+        [Test]
+        public void Cut25Episodes_WithText_WithImages_PerformanceTest()
+        {
+            var sw = Stopwatch.StartNew();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            int currentStart = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(
+                    SampleFiles.RealInputVideoAVI2,
+                    currentStart,
+                    15,
+                    new List<TextTimeRecord> { new TextTimeRecord(i.ToString(), 0, 15) },
+                    new List<DrawImageTimeRecord>
+                    {
+                        new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 3, 5)
+                    }));
+                currentStart += 100;
+            }
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut25Episodes_WithText_WithImages.mp4");
+            sw.Stop();
+            Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 3, 20), sw.Elapsed.ToString());
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut25Episodes_WithText_WithImages.mp4"));
+        }
+
+        [Test]
+        public void Cut25Episodes_WithText_WithImages_WithTimeWarps_PerformanceTest()
+        {
+            var sw = Stopwatch.StartNew();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            int totalDuration = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(
+                    SampleFiles.RealInputVideoAVI,
+                    totalDuration,
+                    15,
+                    new List<TextTimeRecord> {new TextTimeRecord(i.ToString(), 0, 15)},
+                    new List<DrawImageTimeRecord>
+                    {
+                        new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 3, 5)
+                    },
+                    new List<TimeWarpRecord> {new TimeWarpRecord(3, 6, 0.5)}));
+                totalDuration += 30;
+            }
+
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut25Episodes_WithText_WithImages_WithTimeWarps.mp4");
+            sw.Stop();
+            //Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 0, 20), sw.Elapsed.ToString());
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut25Episodes_WithText_WithImages_WithTimeWarps.mp4"));
+        }
+
+        [Test]
         public void Cut2SameEpisodes_WithText_NoImages_PerformanceTest()
         {
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "First episode"));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 20, 15, "Second episode"));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                20,
+                15,
+                new List<TextTimeRecord> { new TextTimeRecord("First episode", 0, 15) }));
+            ffmpegVideoRenderer.AddVideoEpisodes(
+                new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                    20,
+                    15,
+                    new List<TextTimeRecord> { new TextTimeRecord("Second episode", 0, 15) }));
             ffmpegVideoRenderer.StartRender(OutputFolder + "Cut2SameEpisodes_WithText_NoImages.mp4");
             sw.Stop();
             Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 0, 20), sw.Elapsed.ToString());
@@ -154,18 +292,21 @@ namespace VideoTests
                 File.Delete(LogFilePath);
             }
             this.Cut1Episode_NoText_NoImages_Test();
-            this.Cut2Episodes_NoText_NoImages_Test();
+            this.Cut6Episodes_WithText_NoImages_DIVX_Test();
             var logText = File.ReadAllText(LogFilePath);
 
             var regex = new Regex("\r\n-----------*.?--------------\r\n");
-            Assert.AreEqual(6, regex.Matches(logText).Count);
+            Assert.AreEqual(10, regex.Matches(logText).Count);
         }
 
         [Test]
         public void Cut1EpisodeWithText_FinishCallback_Test()
         {
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec, 40, 55, "OverlayText"));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.Helicopter_1min_48sec,
+                40,
+                55,
+                new List<TextTimeRecord> {new TextTimeRecord("Overlay text", 0, 55)}));
             double currentProgress = 0;
             ffmpegVideoRenderer.StartRender(
                 OutputFolder + "Cut1Episode_WithText_NoImages_FinishCallbackTest.mp4",
@@ -186,10 +327,25 @@ namespace VideoTests
         {
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
-            var images = new List<DrawImageTimeRecord> { new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4) };
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 20, 15, "First episode", images));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 300, 15, "Third episode", new List<DrawImageTimeRecord>()));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 500, 15, string.Empty, new List<DrawImageTimeRecord>()));
+            var images = new List<DrawImageTimeRecord>
+            {
+                new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 1, 4)
+            };
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI,
+                20,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("First text", 0, 15)},
+                images));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI,
+                300,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Third text", 0, 15)},
+                new List<DrawImageTimeRecord>()));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI,
+                500,
+                15,
+                new List<TextTimeRecord>(),
+                new List<DrawImageTimeRecord>()));
             double currentProgress = 0;
             var outputFilePath = OutputFolder + "Cut2SameEpisodes_WithText_NoImages_FinishCallbackTest.mkv";
             ffmpegVideoRenderer.StartRender(
@@ -209,14 +365,14 @@ namespace VideoTests
         }
 
         [Test]
-        public void Cut1Episode_NoText_NoImages_Cancel_Test()
+        public void Cut4Episodes_NoText_NoImages_Cancel_Test()
         {
             var cancelationTokenSource = new CancellationTokenSource();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer(cancelationTokenSource);
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 40, 55));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 40, 55));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 40, 55));
-            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(@"M:\SVA.Videos\HDV_1626.mp4", 40, 55));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 40, 55));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 40, 55));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 40, 55));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 40, 55));
             ffmpegVideoRenderer.StartRender(
                 OutputFolder + "Cut1Episode_NoText_NoImages.mp4",
                 (s, d, currentTime, estimatedTime) =>

@@ -76,6 +76,7 @@
     <Compile Include="FFMpegVideoRendererTests.cs" />
     <Compile Include="SampleFiles.cs" />
     <Compile Include="TimeWarpTests.cs" />
+    <Compile Include="VideoInfoParserTests.cs" />
     <Compile Include="VideoUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="YoutubeTests.cs" />

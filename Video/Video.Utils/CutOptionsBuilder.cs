@@ -9,12 +9,15 @@ namespace Video.Utils
 {
     public class CutOptionsBuilder
     {
+        // mkv файлы потом без проблем склеиваются в конкате. mp4, например, склеивается с артефактами.
+        public const string DefaultCutTempContainer = ".mkv";
+
         private readonly TemporaryFilesStorage temporaryFilesStorage;
 
-        public CutOptionsBuilder(IList<VideoRenderOption> videoRenderOptions, Size outputSize, IGlobalExportProgress globalExportProgress, TemporaryFilesStorage temporaryFilesStorage)
+        public CutOptionsBuilder(IList<VideoRenderOption> videoRenderOptions, Size outputSize, IGlobalExportProgress globalExportProgress, TemporaryFilesStorage temporaryFilesStorage, bool ignoreOverlays)
         {
             this.temporaryFilesStorage = temporaryFilesStorage;
-            this.BuildCutOptions(videoRenderOptions, outputSize, globalExportProgress);
+            this.BuildCutOptions(videoRenderOptions, outputSize, globalExportProgress, ignoreOverlays);
         }
 
         public IList<FFMpegCutOptions> CutOptions { get; } = new List<FFMpegCutOptions>();
@@ -23,12 +26,9 @@ namespace Video.Utils
         
         public string OutputExtension { get; private set; }
 
-        private void BuildCutOptions(IList<VideoRenderOption> videoRenderOptions, Size outputSize, IGlobalExportProgress globalExportProgress)
+        private void BuildCutOptions(IList<VideoRenderOption> videoRenderOptions, Size outputSize, IGlobalExportProgress globalExportProgress, bool ignoreOverlays)
         {
-            // mkv файлы потом без проблем склеиваются в конкате. mp4, например, склеивается с артефактами.
-            const string DefaultCutTempContainer = ".mkv";
-
-            var plainConcatIsPossible = this.CheckWhetherPlainConcatIsPossible(videoRenderOptions);
+            var plainConcatIsPossible = this.CheckWhetherPlainConcatIsPossible(videoRenderOptions, ignoreOverlays);
 
             this.OutputExtension = plainConcatIsPossible ? Path.GetExtension(videoRenderOptions.First().FilePath) : DefaultCutTempContainer;
 
@@ -38,13 +38,13 @@ namespace Video.Utils
             }
         }
 
-        private bool CheckWhetherPlainConcatIsPossible(IList<VideoRenderOption> videoRenderOptions)
+        private bool CheckWhetherPlainConcatIsPossible(IList<VideoRenderOption> videoRenderOptions, bool ignoreOverlays)
         {
             // если все эпизоды из одного видео, то их нарезка и склейка не требуют перекодирования.
             var plainConcatIsPossible = videoRenderOptions.Distinct(v => v.FilePath).Count() == 1;
             if (plainConcatIsPossible)
             {
-                if (videoRenderOptions.Any(v => v.ImagesTimeTable.Any() || !string.IsNullOrEmpty(v.OverlayText) || v.TimeWarpSettings.Any()))
+                if (!ignoreOverlays && (videoRenderOptions.Any(v => v.ImagesTimeTable.Any() || v.OverlayTextTimeTable.Any() || v.TimeWarpSettings.Any())))
                 {
                     plainConcatIsPossible = false;
                 }
@@ -76,7 +76,7 @@ namespace Video.Utils
                                      videoRenderOption.DurationSeconds,
                                      globalExportProgress,
                                      outputSize,
-                                     videoRenderOption.OverlayText,
+                                     videoRenderOption.OverlayTextTimeTable,
                                      videoRenderOption.ImagesTimeTable,
                                      videoRenderOption.TimeWarpSettings);
 

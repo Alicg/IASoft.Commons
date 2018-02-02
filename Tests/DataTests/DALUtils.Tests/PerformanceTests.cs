@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
@@ -13,7 +14,9 @@ namespace DALUtils.Tests
         public void AddManyEntitiesToBigTable()
         {
             const int SizeOfTestCollection = 1000;
-            var context = new chinookEntities();
+            var conStr = ConfigurationManager.ConnectionStrings["chinookEntities"].ConnectionString;
+            conStr = conStr.Replace("%SportFolder%", Environment.GetEnvironmentVariable("SportFolder"));
+            var context = new chinookEntities(conStr);
             var maxId = context.tracks.Max(v => v.TrackId);
             var sw = new Stopwatch();
             var totalAddTime = 0.0;

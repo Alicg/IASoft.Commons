@@ -51,9 +51,9 @@ namespace Video.Utils
             this.NotifyGlobalProgress();
         }
 
-        public void IncreaseOperationsDone(int processId)
+        public void IncreaseOperationsDone(int processId, int count = 1)
         {
-            Interlocked.Increment(ref this.operationsDone);
+            Interlocked.Add(ref this.operationsDone, count);
             this.activeOperationsProgress.TryRemove(processId, out double _);
             this.NotifyGlobalProgress();
         }
@@ -68,25 +68,56 @@ namespace Video.Utils
 
         public static GlobalExportProgress Empty => new GlobalExportProgress(0, null);
 
-        public static GlobalExportProgress BuildFromRenderOptions(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
+        public static GlobalExportProgress BuildFromRenderOptionsPreEffect(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
         {
             // по одной операции для вырезания каждого эпизода.
             var totalOperationsExpected = videoRenderOptions.Count;
 
             // по одной операции для каждого эпизода с текстом.
-            totalOperationsExpected += videoRenderOptions.Count(v => !string.IsNullOrEmpty(v.OverlayText));
+            totalOperationsExpected += videoRenderOptions.Count(v => v.OverlayTextTimeTable != null && v.OverlayTextTimeTable.Any());
 
             // по одной операции для каждого эпизода со штрихами.
             totalOperationsExpected += videoRenderOptions.Count(v => v.ImagesTimeTable != null && v.ImagesTimeTable.Any());
 
-            // по одной операции для каждого эпизода с эффектами времени.
-            totalOperationsExpected += videoRenderOptions.Count(v => v.TimeWarpSettings != null && v.TimeWarpSettings.Any());
+            // по одной операции для каждого эффекта времени.
+            totalOperationsExpected += videoRenderOptions.SelectMany(v => v.TimeWarpSettings ?? new List<TimeWarpRecord>()).Count();
 
             if (videoRenderOptions.Count > 1)
             {
                 // один раз склеить и конвертировать эпизоды в конечный формат.
                 totalOperationsExpected += 2;
             }
+
+            var progress = new GlobalExportProgress(totalOperationsExpected, progressChangedCallback);
+            progress.StartExport();
+            return progress;
+        }
+
+        public static GlobalExportProgress BuildFromRenderOptionsPostEffect(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
+        {
+            // по одной операции для вырезания каждого эпизода.
+            var totalOperationsExpected = videoRenderOptions.Count;
+
+            var differentSourcesCount = videoRenderOptions.Select(v => v.FilePath).Distinct().Count();
+            // склеить эпизоды в группы одного формата.
+            totalOperationsExpected += differentSourcesCount;
+
+            if (differentSourcesCount > 1)
+            {
+                // один раз склеить все группы разных форматов.
+                totalOperationsExpected += 1;
+            }
+
+            var totalOverlayTextRecords = videoRenderOptions
+                .SelectMany(v => v.OverlayTextTimeTable ?? new List<TextTimeRecord>()).Count();
+            
+            var totalOverlayImageRecords = videoRenderOptions
+                .SelectMany(v => v.ImagesTimeTable ?? new List<DrawImageTimeRecord>()).Count();
+            
+            totalOperationsExpected += Math.Max(totalOverlayTextRecords, totalOverlayImageRecords);
+
+            // по одной операции для каждого эффекта времени.
+            totalOperationsExpected += videoRenderOptions.Count(v => v.TimeWarpSettings != null && v.TimeWarpSettings.Any());
 
             var progress = new GlobalExportProgress(totalOperationsExpected, progressChangedCallback);
             progress.StartExport();

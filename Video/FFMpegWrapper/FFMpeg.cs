@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -13,6 +14,7 @@ namespace FFMpegWrapper
     public class FFMpeg
     {
         private readonly TemporaryFilesStorage temporaryFilesStorage;
+        private readonly ProcessPriorityClass ffmpegProcessPriorityClass;
 
         private readonly IObservable<double> stopSignal;
         private static readonly string pathToFfMpegExe;
@@ -48,9 +50,12 @@ namespace FFMpegWrapper
             }
         }
 
-        public FFMpeg(TemporaryFilesStorage temporaryFilesStorage, IObservable<double> stopSignal = null)
+        public FFMpeg(TemporaryFilesStorage temporaryFilesStorage,
+            ProcessPriorityClass ffmpegProcessPriorityClass = ProcessPriorityClass.High,
+            IObservable<double> stopSignal = null)
         {
             this.temporaryFilesStorage = temporaryFilesStorage;
+            this.ffmpegProcessPriorityClass = ffmpegProcessPriorityClass;
             this.stopSignal = stopSignal ?? Observable.Empty<double>();
         }
 
@@ -65,27 +70,29 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "CONVERT");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
-        public void Concat(string outputFile, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
+        public void Concat(string outputFile, string vCodec, string aCodec, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
         {
-            this.Concat(outputFile, Size.Empty, globalExportProgress, inputFiles);
+            this.Concat(outputFile, Size.Empty, vCodec, aCodec, globalExportProgress, inputFiles);
         }
 
-        public void Concat(string outputFile, Size outputSize, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
+        public void Concat(string outputFile, Size outputSize, string vCodec, string aCodec, IGlobalExportProgress globalExportProgress, params string[] inputFiles)
         {
             EnsureFileDoesNotExist(outputFile);
             var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .ConcatInputsFrom(inputFiles)
-                .OutputVideoCodec("copy")
-                .OutputAudioCodec("copy")
+                .OutputVideoCodec(vCodec)
+                .OutputAudioCodec(aCodec)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "CONCAT");
@@ -110,6 +117,7 @@ namespace FFMpegWrapper
                 .OutputTo(cutOptions.OutputFile)
                 .WithProgressCallback(cutOptions.GlobalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "CUT");
@@ -129,52 +137,72 @@ namespace FFMpegWrapper
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "DrawImage");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
-        public void DrawText(string inputFile, string overlayText, string outputFile, IGlobalExportProgress globalExportProgress)
+        public void DrawText(string inputFile, List<TextTimeRecord> overlayText, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
             const int FontSize = 30;
-            const int CharsInLine = 40;
-            var lines = GetTranspositionedText(overlayText, CharsInLine);
             var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .InputFrom(inputFile)
-                .DrawText(lines, fontsPath, FontSize)
+                .DrawText(overlayText, fontsPath, FontSize)
                 .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
                 .OutputAudioCodec(FFMpegCutOptions.DefaultAudioCodec) 
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
                 .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "DrawText");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
-        public void ApplyTimeWarp(string inputFile, IEnumerable<TimeWarpRecord> timeWarps, string outputFile, IGlobalExportProgress globalExportProgress)
+        public void ApplyTimeWarp(string inputFile, IList<TimeWarpRecord> timeWarps, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
             var cutCommandBuilder = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .InputFrom(inputFile)
                 .ApplyTimeWarp(timeWarps)
-                //.AppendCustom("-avoid_negative_ts 1 -max_muxing_queue_size 1000")
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
-                .WithStopSignal(this.stopSignal);
+                .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass);
             var command = cutCommandBuilder.BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "TIME_WARP");
-            globalExportProgress.IncreaseOperationsDone(command.ProcessId);
+            globalExportProgress.IncreaseOperationsDone(command.ProcessId, timeWarps.Count);
         }
 
-        public void CutAndDrawText(FFMpegCutOptions cutOptions, string overlayText)
+        public void DrawImagesAndText(string inputFile, IList<DrawImageTimeRecord> imagesTimeTable, List<TextTimeRecord> overlayText, string outputFile, IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            const int FontSize = 30;
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
+                .InputFrom(inputFile)
+                .DrawImagesAndText(imagesTimeTable, overlayText, fontsPath, FontSize)
+                .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
+                .OutputPreset(PresetParameters.SuperFast)
+                .OutputAudioCodec(FFMpegCutOptions.DefaultAudioCodec) 
+                .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
+                .BuildCommand(pathToFfMpegExe);
+
+            this.ExecuteFFMpegCommand(command, "DrawText");
+            globalExportProgress.IncreaseOperationsDone(command.ProcessId, Math.Max(imagesTimeTable.Count, overlayText.Count));
+        }
+
+        public void CutAndDrawText(FFMpegCutOptions cutOptions, List<TextTimeRecord> overlayText)
         {
             EnsureFileDoesNotExist(cutOptions.OutputFile);
-            if (string.IsNullOrEmpty(overlayText))
+            if (!overlayText.Any())
             {
                 this.Cut(cutOptions);
                 return;
@@ -267,31 +295,9 @@ namespace FFMpegWrapper
             }
         }
 
-        private static string[] GetTranspositionedText(string text, int charsInLine)
-        {
-            if (text.Length <= charsInLine)
-                return new[] {text};
-            var lastSpacePosition = 0;
-            while (true)
-            {
-                var spacePosition = text.IndexOf(' ', lastSpacePosition + 1, charsInLine - lastSpacePosition);
-                if(spacePosition == -1)
-                    break;
-                lastSpacePosition = spacePosition;
-            }
-            var oneLineText = text.Substring(0, lastSpacePosition);
-            var remainingLines = GetTranspositionedText(text.Substring(lastSpacePosition + 1, text.Length - lastSpacePosition - 1), charsInLine);
-            return new[] {oneLineText}.Union(remainingLines).ToArray();
-        }
-
         private static FFMpegVideoInfo ParseVideoInfo(string str)
         {
-            var regex = new Regex(@"Video:[^~]*?(?<Width>\d{3,5})x(?<Height>\d{3,5})");
-            var match = regex.Match(str);
-            var width = System.Convert.ToInt32(match.Groups["Width"].Value);
-            var height = System.Convert.ToInt32(match.Groups["Height"].Value);
-            var videoInfo = new FFMpegVideoInfo(width, height);
-            return videoInfo;
+            return new VideoInfoParser().ParseFFMpegInfo(str);
         }
     }
 }

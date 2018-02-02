@@ -1,1 +1,1 @@
-xcopy *.dll W:\Home\sport\SportVideoAnalyzer\external\CommonLibs /y
+xcopy *.dll %SportFolder%\SportVideoAnalyzer\external\CommonLibs /y

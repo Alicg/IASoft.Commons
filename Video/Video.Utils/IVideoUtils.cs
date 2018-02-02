@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +19,7 @@ namespace Video.Utils
             VideoRenderOption[] renderOptions,
             string outputFile,
             Size outputSize,
+            ProcessPriorityClass processPriorityClass,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double, double, double> callbackAction = null,
             Action<double, Exception> finishAction = null);

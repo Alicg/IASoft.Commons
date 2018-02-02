@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -24,6 +25,7 @@ namespace FFMpegWrapper
         private readonly TemporaryFilesStorage temporaryFilesStorage;
         private IObservable<double> stopSignal;
         private bool ignoreErrors;
+        private ProcessPriorityClass processPriorityClass;
 
         public FFMpegCommandBuilder(TemporaryFilesStorage temporaryFilesStorage)
         {
@@ -99,7 +101,7 @@ namespace FFMpegWrapper
 
         public FFMpegCommandBuilder DrawImages(IList<DrawImageTimeRecord> imagesTimeTable)
         {
-            const string OverlayTamplate = "{5}overlay={0}:{1}:enable='between(t,{2},{3})'{4}";
+            const string OverlayTemplate = "{5}overlay={0}:{1}:enable='between(t,{2},{3})'{4}";
             var imagesFiles = new List<string>();
             var totalFilterScript = "";
             var id = 0;
@@ -109,7 +111,7 @@ namespace FFMpegWrapper
                 imagesFiles.Add(imageFile);
                 File.WriteAllBytes(imageFile, timeRecord.ImageData);
                 totalFilterScript += string.Format(CultureInfo.InvariantCulture,
-                    OverlayTamplate,
+                    OverlayTemplate,
                     timeRecord.LeftOffset,
                     timeRecord.TopOffset,
                     timeRecord.ImageStartSecond,
@@ -127,20 +129,77 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommandBuilder DrawText(string[] textLines, string pathToFonts, int fontSize)
+        public FFMpegCommandBuilder DrawImagesAndText(IList<DrawImageTimeRecord> imagesTimeTable, IList<TextTimeRecord> textTimeRecords, string pathToFonts, int fontSize)
+        {
+            const string OverlayTemplate = "{5}overlay={0}:{1}:enable='between(t,{2},{3})'{4}";
+            var imagesFiles = new List<string>();
+            var totalFilterScript = "";
+            var id = 0;
+            var lastStream = "";
+            foreach (var timeRecord in imagesTimeTable)
+            {
+                var imageFile = this.GetIntermediateFile(".png");
+                imagesFiles.Add(imageFile);
+                File.WriteAllBytes(imageFile, timeRecord.ImageData);
+                var lastOverlayInFilter = (id == imagesTimeTable.Count - 1) && !textTimeRecords.Any();
+                totalFilterScript += string.Format(CultureInfo.InvariantCulture,
+                    OverlayTemplate,
+                    timeRecord.LeftOffset,
+                    timeRecord.TopOffset,
+                    timeRecord.ImageStartSecond,
+                    timeRecord.ImageEndSecond,
+                    lastOverlayInFilter ? "" : $" [tmp{id}];", //последний overlay без [tmp];
+                    id == 0 ? "" : $"[tmp{id - 1}] "); //первый overlay без [tmp]
+                lastStream = $"[tmp{id}]";
+                id++;
+            }
+
+            totalFilterScript += lastStream;
+            foreach (var textTimeRecord in textTimeRecords)
+            {
+                var i = 0;
+                foreach (var line in textTimeRecord.Lines)
+                {
+                    totalFilterScript +=
+                        $"drawtext=enable='between(t,{textTimeRecord.StartSecond.ToString(CultureInfo.InvariantCulture)},{textTimeRecord.EndSecond.ToString(CultureInfo.InvariantCulture)})'" +
+                        $":fontfile={pathToFonts}" +
+                        $":text='{line}'" +
+                        $":fontsize={fontSize}" +
+                        ":fontcolor=red" +
+                        ":x=(main_w/2-text_w/2)" +
+                        $":y=main_h-(text_h*({textTimeRecord.Lines.Count} -{i})) - 15,";
+                    i++;
+                }
+            }
+            totalFilterScript = totalFilterScript.Remove(totalFilterScript.LastIndexOf(','));
+            totalFilterScript += "[text_out]";
+
+            var scriptFile = this.GetIntermediateFile(".txt");
+            File.WriteAllText(scriptFile, totalFilterScript, Encoding.Default);
+            var imageFiles = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
+
+            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\" -map [text_out] -map 0:a", imageFiles, scriptFile);
+            return this;
+        }
+
+        public FFMpegCommandBuilder DrawText(IList<TextTimeRecord> textTimeRecords, string pathToFonts, int fontSize)
         {
             var drawTextParameter = "[in]";
-            var i = 0;
-            foreach (var line in textLines)
+            foreach (var textTimeRecord in textTimeRecords)
             {
-                drawTextParameter +=
-                    $"drawtext=fontfile={pathToFonts}"+
-                    $":text='{line}'"+
-                    $":fontsize={fontSize}"+
-                    ":fontcolor=red"+
-                    ":x=(main_w/2-text_w/2)"+
-                    $":y=main_h-(text_h*({textLines.Length} -{i})) - 15,";
-                i++;
+                var i = 0;
+                foreach (var line in textTimeRecord.Lines)
+                {
+                    drawTextParameter +=
+                        $"drawtext=enable='between(t,{textTimeRecord.StartSecond},{textTimeRecord.EndSecond})'" +
+                        $":fontfile={pathToFonts}" +
+                        $":text='{line}'" +
+                        $":fontsize={fontSize}" +
+                        ":fontcolor=red" +
+                        ":x=(main_w/2-text_w/2)" +
+                        $":y=main_h-(text_h*({textTimeRecord.Lines.Count} -{i})) - 15,";
+                    i++;
+                }
             }
             drawTextParameter = drawTextParameter.Remove(drawTextParameter.LastIndexOf(','));
             var scriptFile = this.GetIntermediateFile(".txt");
@@ -249,6 +308,12 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder WithPriority(ProcessPriorityClass processPriorityClass)
+        {
+            this.processPriorityClass = processPriorityClass;
+            return this;
+        }
+
         public FFMpegCommandBuilder IgnoreErrors()
         {
             this.ignoreErrors = true;
@@ -257,7 +322,12 @@ namespace FFMpegWrapper
 
         public FFMpegCommand BuildCommand(string pathToFfMpegExe)
         {
-            return new FFMpegCommand(pathToFfMpegExe, this.parametersAccumulator.ToString(), this.progressCallback, this.stopSignal, this.ignoreErrors);
+            return new FFMpegCommand(pathToFfMpegExe,
+                this.parametersAccumulator.ToString(),
+                this.progressCallback,
+                this.stopSignal,
+                this.processPriorityClass,
+                this.ignoreErrors);
         }
 
         private string GetIntermediateFile(string ext)

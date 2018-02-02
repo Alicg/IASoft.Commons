@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +52,7 @@ namespace Video.Utils
             VideoRenderOption[] renderOptions,
             string outputFile,
             Size outputSize,
+            ProcessPriorityClass processPriorityClass,
             CancellationTokenSource cancellationTokenSource = null,
             Action<string, double, double, double> callbackAction = null,
             Action<double, Exception> finishAction = null)
@@ -60,7 +62,7 @@ namespace Video.Utils
             {
                 renderer.AddVideoEpisodes(renderOption);
             }
-            return renderer.StartRenderAsync(outputFile, outputSize, callbackAction, finishAction);
+            return renderer.StartRenderAsync(outputFile, outputSize, processPriorityClass, callbackAction, finishAction);
         }
 
         public void EnableDebugMode()

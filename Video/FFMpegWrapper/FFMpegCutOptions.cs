@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Linq;
 
 namespace FFMpegWrapper
 {
@@ -38,16 +39,16 @@ namespace FFMpegWrapper
             Size outputSize,
             string videoCodec,
             string audioCodec,
-            string overlayText,
+            IEnumerable<TextTimeRecord> overlayText,
             IEnumerable<DrawImageTimeRecord> imagesTimeTable,
             IEnumerable<TimeWarpRecord> timeWarps)
             : this(inputFile, outputFile, start, duration, videoCodec, audioCodec, globalExportProgress)
         {
             this.OutputSize = outputSize;
             this.SimpleMode = false;
-            this.OverlayText = overlayText;
-            this.ImagesTimeTable = imagesTimeTable == null ? null : new List<DrawImageTimeRecord>(imagesTimeTable);
-            this.TimeWarps = timeWarps == null ? null : new List<TimeWarpRecord>(timeWarps);
+            this.OverlayText = overlayText?.ToList();
+            this.ImagesTimeTable = imagesTimeTable?.ToList();
+            this.TimeWarps = timeWarps?.ToList();
         }
 
         public string InputFile { get; }
@@ -68,7 +69,7 @@ namespace FFMpegWrapper
 
         public bool SimpleMode { get; }
 
-        public string OverlayText { get; }
+        public List<TextTimeRecord> OverlayText { get; }
 
         public List<DrawImageTimeRecord> ImagesTimeTable { get; }
 
@@ -102,7 +103,7 @@ namespace FFMpegWrapper
             double duration,
             IGlobalExportProgress globalExportProgress,
             Size outputSize,
-            string overlayText,
+            List<TextTimeRecord> overlayText,
             List<DrawImageTimeRecord> images,
             List<TimeWarpRecord> timeWarps)
         {
@@ -129,7 +130,7 @@ namespace FFMpegWrapper
             Size outputSize,
             string videoCodec,
             string audioCodec,
-            string overlayText,
+            List<TextTimeRecord> overlayText,
             List<DrawImageTimeRecord> images,
             List<TimeWarpRecord> timeWarps)
         {

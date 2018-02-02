@@ -18,7 +18,7 @@
         public int LeftOffset { get; private set; }
         public int TopOffset { get; private set; }
 
-        public double ImageStartSecond { get; private set; }
-        public double ImageEndSecond { get; private set; }
+        public double ImageStartSecond { get; set; }
+        public double ImageEndSecond { get; set; }
     }
 }

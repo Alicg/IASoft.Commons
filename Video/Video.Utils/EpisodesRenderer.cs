@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -8,22 +9,23 @@ using FFMpegWrapper;
 
 namespace Video.Utils
 {
-    using System;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public class EpisodesRenderer
+    public class EpisodesRenderer : IEpisodesRenderer
     {
         private readonly CancellationToken cancellationToken;
         private readonly IList<VideoRenderOption> videoRenderOptions;
         private readonly string outputFile;
         private readonly Size outputSize;
+        private readonly ProcessPriorityClass rendererProcessPriorityClass;
         private readonly IGlobalExportProgress globalExportProgress;
 
         public EpisodesRenderer(
             IList<VideoRenderOption> videoRenderOptions,
             string outputFile,
             Size outputSize,
+            ProcessPriorityClass rendererProcessPriorityClass,
             IGlobalExportProgress globalExportProgress,
             CancellationToken cancellationToken)
         {
@@ -31,6 +33,7 @@ namespace Video.Utils
             this.videoRenderOptions = videoRenderOptions;
             this.outputFile = outputFile;
             this.outputSize = outputSize;
+            this.rendererProcessPriorityClass = rendererProcessPriorityClass;
             this.globalExportProgress = globalExportProgress;
         }
 
@@ -43,25 +46,24 @@ namespace Video.Utils
                 // ReSharper disable once ImpureMethodCallOnReadonlyValueField
                 // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
                 this.cancellationToken.Register(() => subject.OnNext(0));
-                var ffMpeg = new FFMpeg(temporaryFilesStorage, subject.AsObservable());
+                var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable());
                 ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
-                var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage);
-
+                var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage, false);
+                
                 Parallel.ForEach(
                     cutOptionsBuilder.CutOptions,
                     cutOptions =>
+                    {
+                        if (this.cancellationToken.IsCancellationRequested)
                         {
-                            if (this.cancellationToken.IsCancellationRequested)
-                            {
-                                this.cancellationToken.ThrowIfCancellationRequested();
-                            }
+                            this.cancellationToken.ThrowIfCancellationRequested();
+                        }
 
-                            // ReSharper disable once AccessToDisposedClosure
-                            // выполнение замыкания всегда будет происходить до Dispose.
-                            this.CutAndDrawTextAndDrawImageAndApplyTimeWarp(ffMpeg, cutOptions, temporaryFilesStorage);
-                        });
-
+                        // ReSharper disable once AccessToDisposedClosure
+                        // выполнение замыкания всегда будет происходить до Dispose.
+                        this.CutAndDrawTextAndDrawImageAndApplyTimeWarp(ffMpeg, cutOptions, temporaryFilesStorage);
+                    });
                 if (cutOptionsBuilder.FilesToConcat.Count == 1)
                 {
                     File.Move(cutOptionsBuilder.FilesToConcat.Single(), this.outputFile);
@@ -74,7 +76,7 @@ namespace Video.Utils
                     }
 
                     var tempFileForConcat = temporaryFilesStorage.GetIntermediateFile(cutOptionsBuilder.OutputExtension);
-                    ffMpeg.Concat(tempFileForConcat, this.outputSize, this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
+                    ffMpeg.Concat(tempFileForConcat, this.outputSize, "copy", "copy", this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
                     ffMpeg.Convert(tempFileForConcat, this.outputFile, this.globalExportProgress);
                 }
             }
@@ -89,7 +91,7 @@ namespace Video.Utils
             var extensionForResultFile = Path.GetExtension(cutOptions.OutputFile);
             var imagesExist = cutOptions.ImagesTimeTable != null && cutOptions.ImagesTimeTable.Any();
             var timeWarpExists = cutOptions.TimeWarps != null && cutOptions.TimeWarps.Any();
-            if (string.IsNullOrEmpty(cutOptions.OverlayText) && !imagesExist && !timeWarpExists)
+            if (!cutOptions.OverlayText.Any() && !imagesExist && !timeWarpExists)
             {
                 ffMpeg.Cut(cutOptions);
                 return;
@@ -98,7 +100,7 @@ namespace Video.Utils
 
             ffMpeg.Cut(cutOptions.CloneWithOtherOutput(intermediateFile1));
 
-            if (!string.IsNullOrEmpty(cutOptions.OverlayText))
+            if (cutOptions.OverlayText.Any())
             {
                 var intermediateFile2 = (imagesExist || timeWarpExists) ? temporaryFilesStorage.GetIntermediateFile(extensionForResultFile) : cutOptions.OutputFile;
                 ffMpeg.DrawText(intermediateFile1, cutOptions.OverlayText, intermediateFile2, cutOptions.GlobalExportProgress);

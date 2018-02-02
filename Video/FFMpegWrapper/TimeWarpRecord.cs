@@ -9,9 +9,9 @@
             this.Coefficient = coefficient;
         }
 
-        public double StartSecond { get; }
+        public double StartSecond { get; set; }
 
-        public double EndSecond { get; }
+        public double EndSecond { get; set; }
 
         public double Coefficient { get; }
     }

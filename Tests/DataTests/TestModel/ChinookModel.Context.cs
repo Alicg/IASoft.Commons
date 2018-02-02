@@ -19,6 +19,11 @@ namespace TestModel
             : base("name=chinookEntities")
         {
         }
+        
+        public chinookEntities(string connectionString)
+            : base(connectionString)
+        {
+        }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

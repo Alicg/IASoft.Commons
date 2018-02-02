@@ -12,13 +12,14 @@ namespace FFMpegWrapper
         private readonly bool ignoreError;
         private readonly Action<double, double, int> progressCallback;
         private readonly IObservable<double> stopSignal;
+        private readonly ProcessPriorityClass processPriorityClass;
         private readonly string pathToFfMpegExe;
         private readonly string command;
 
         private TimeSpan commandDuration = TimeSpan.Zero;
 
         public FFMpegCommand(string pathToFfMpegExe, string command, bool ignoreError = false)
-            : this(pathToFfMpegExe, command, null, Observable.Empty<double>(), ignoreError)
+            : this(pathToFfMpegExe, command, null, Observable.Empty<double>(), ProcessPriorityClass.High, ignoreError)
         {
         }
 
@@ -27,12 +28,14 @@ namespace FFMpegWrapper
             string command,
             Action<double, double, int> progressCallback,
             IObservable<double> stopSignal,
+            ProcessPriorityClass processPriorityClass,
             bool ignoreError = false)
         {
             this.pathToFfMpegExe = pathToFfMpegExe;
             this.command = command;
             this.progressCallback = progressCallback;
             this.stopSignal = stopSignal;
+            this.processPriorityClass = processPriorityClass;
             this.ignoreError = ignoreError;
         }
         
@@ -82,7 +85,7 @@ namespace FFMpegWrapper
                 try
                 {
                     this.ProcessId = process.Id;
-                    process.PriorityClass = ProcessPriorityClass.High;
+                    process.PriorityClass = this.processPriorityClass;
                 }
                 catch
                 {

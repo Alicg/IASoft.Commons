@@ -62,9 +62,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CutOptionsBuilder.cs" />
+    <Compile Include="EpisodesRendererWithPostEffects.cs" />
     <Compile Include="EpisodesRenderer.cs" />
     <Compile Include="FFMpegVideoRenderer.cs" />
     <Compile Include="GlobalExportProgress.cs" />
+    <Compile Include="IEpisodesRenderer.cs" />
     <Compile Include="IVideoRenderer.cs" />
     <Compile Include="IVideoUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
