@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace FFMpegWrapper
@@ -31,6 +32,8 @@ namespace FFMpegWrapper
         {
             this.temporaryFilesStorage = temporaryFilesStorage;
         }
+
+        public StringBuilder ParametersAccumulator => this.parametersAccumulator;
 
         public FFMpegCommandBuilder StartFrom(double startSecond)
         {
@@ -99,113 +102,99 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommandBuilder DrawImages(IList<DrawImageTimeRecord> imagesTimeTable)
+        public FFMpegCommandBuilder ConcatDrawImagesAndText(IList<string> filesToConcat,
+            IList<DrawImageTimeRecord> imagesTimeTable,
+            IList<TextTimeRecord> textTimeRecords,
+            Size finalScale,
+            string pathToFonts,
+            int fontSize)
         {
-            const string OverlayTemplate = "{5}overlay={0}:{1}:enable='between(t,{2},{3})'{4}";
+            string outConcatVStream;
+            string outConcatAStream;
+            var concatFilter = this.BuildConcatFilter(filesToConcat.Count, finalScale, out outConcatVStream, out outConcatAStream);
+
             var imagesFiles = new List<string>();
-            var totalFilterScript = "";
-            var id = 0;
-            foreach (var timeRecord in imagesTimeTable)
-            {
-                var imageFile = this.GetIntermediateFile(".png");
-                imagesFiles.Add(imageFile);
-                File.WriteAllBytes(imageFile, timeRecord.ImageData);
-                totalFilterScript += string.Format(CultureInfo.InvariantCulture,
-                    OverlayTemplate,
-                    timeRecord.LeftOffset,
-                    timeRecord.TopOffset,
-                    timeRecord.ImageStartSecond,
-                    timeRecord.ImageEndSecond,
-                    id == imagesTimeTable.Count - 1 ? "" : $" [tmp{id}];", //последний overlay без [tmp];
-                    id == 0 ? "" : $"[tmp{id - 1}] "); //первый overlay без [tmp]
-                id++;
-            }
+            string imageStream;
+            var drawImagesFilter = this.BuildDrawImagesFilter(outConcatVStream,
+                filesToConcat.Count,
+                imagesTimeTable,
+                imagesFiles,
+                out imageStream);
 
+            string textOutputStream;
+            var drawTextFilter = this.BuildDrawTextFilter(imageStream,
+                textTimeRecords,
+                pathToFonts,
+                fontSize,
+                out textOutputStream);
+
+            var semicoloneAfterConcatFitler =
+                !string.IsNullOrEmpty(drawImagesFilter) || !string.IsNullOrEmpty(drawTextFilter)
+                    ? ";"
+                    : "";
+            var semicoloneBetweenImageAndTextFilters =
+                !string.IsNullOrEmpty(drawImagesFilter) && !string.IsNullOrEmpty(drawTextFilter)
+                    ? ";"
+                    : "";
             var scriptFile = this.GetIntermediateFile(".txt");
-            File.WriteAllText(scriptFile, totalFilterScript, Encoding.Default);
-            var imageFiles = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
+            File.WriteAllText(scriptFile,
+                concatFilter + semicoloneAfterConcatFitler + drawImagesFilter + semicoloneBetweenImageAndTextFilters +
+                drawTextFilter,
+                Encoding.Default);
 
-            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\"", imageFiles, scriptFile);
+            var inputFiles = filesToConcat.Union(imagesFiles).Aggregate("", (t, c) => $"{t} -i \"{c}\"");
+
+            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\" -map {2} -map {3}",
+                inputFiles,
+                scriptFile,
+                textOutputStream,
+                outConcatAStream);
             return this;
         }
 
         public FFMpegCommandBuilder DrawImagesAndText(IList<DrawImageTimeRecord> imagesTimeTable, IList<TextTimeRecord> textTimeRecords, string pathToFonts, int fontSize)
         {
-            const string OverlayTemplate = "{5}overlay={0}:{1}:enable='between(t,{2},{3})'{4}";
             var imagesFiles = new List<string>();
-            var totalFilterScript = "";
-            var id = 0;
-            var lastStream = "";
-            foreach (var timeRecord in imagesTimeTable)
-            {
-                var imageFile = this.GetIntermediateFile(".png");
-                imagesFiles.Add(imageFile);
-                File.WriteAllBytes(imageFile, timeRecord.ImageData);
-                var lastOverlayInFilter = (id == imagesTimeTable.Count - 1) && !textTimeRecords.Any();
-                totalFilterScript += string.Format(CultureInfo.InvariantCulture,
-                    OverlayTemplate,
-                    timeRecord.LeftOffset,
-                    timeRecord.TopOffset,
-                    timeRecord.ImageStartSecond,
-                    timeRecord.ImageEndSecond,
-                    lastOverlayInFilter ? "" : $" [tmp{id}];", //последний overlay без [tmp];
-                    id == 0 ? "" : $"[tmp{id - 1}] "); //первый overlay без [tmp]
-                lastStream = $"[tmp{id}]";
-                id++;
-            }
+            string imageStream;
+            var drawImagesFilter = this.BuildDrawImagesFilter("", 0, imagesTimeTable, imagesFiles, out imageStream);
 
-            totalFilterScript += lastStream;
-            foreach (var textTimeRecord in textTimeRecords)
-            {
-                var i = 0;
-                foreach (var line in textTimeRecord.Lines)
-                {
-                    totalFilterScript +=
-                        $"drawtext=enable='between(t,{textTimeRecord.StartSecond.ToString(CultureInfo.InvariantCulture)},{textTimeRecord.EndSecond.ToString(CultureInfo.InvariantCulture)})'" +
-                        $":fontfile={pathToFonts}" +
-                        $":text='{line}'" +
-                        $":fontsize={fontSize}" +
-                        ":fontcolor=red" +
-                        ":x=(main_w/2-text_w/2)" +
-                        $":y=main_h-(text_h*({textTimeRecord.Lines.Count} -{i})) - 15,";
-                    i++;
-                }
-            }
-            totalFilterScript = totalFilterScript.Remove(totalFilterScript.LastIndexOf(','));
-            totalFilterScript += "[text_out]";
+            string textOutputStream;
+            var drawTextFilter = this.BuildDrawTextFilter(imageStream, textTimeRecords, pathToFonts, fontSize, out textOutputStream);
+
+            var semicolone = !string.IsNullOrEmpty(drawImagesFilter) && !string.IsNullOrEmpty(drawTextFilter)
+                ? ";"
+                : "";
+            
+            var scriptFile = this.GetIntermediateFile(".txt");
+            File.WriteAllText(scriptFile, drawImagesFilter + semicolone + drawTextFilter, Encoding.Default);
+            var imageFiles = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
+
+            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\" -map {2} -map 0:a", imageFiles, scriptFile, textOutputStream);
+            return this;
+        }
+
+        public FFMpegCommandBuilder DrawImages(IList<DrawImageTimeRecord> imagesTimeTable)
+        {
+            var imagesFiles = new List<string>();
+            string outImagesStream;
+            var totalFilterScript = this.BuildDrawImagesFilter("", 0, imagesTimeTable, imagesFiles, out outImagesStream);
 
             var scriptFile = this.GetIntermediateFile(".txt");
             File.WriteAllText(scriptFile, totalFilterScript, Encoding.Default);
             var imageFiles = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
 
-            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\" -map [text_out] -map 0:a", imageFiles, scriptFile);
+            this.parametersAccumulator.AppendFormat(" {0} -filter_complex_script:v \"{1}\" -map {2}", imageFiles, scriptFile, outImagesStream);
             return this;
         }
 
         public FFMpegCommandBuilder DrawText(IList<TextTimeRecord> textTimeRecords, string pathToFonts, int fontSize)
         {
-            var drawTextParameter = "[in]";
-            foreach (var textTimeRecord in textTimeRecords)
-            {
-                var i = 0;
-                foreach (var line in textTimeRecord.Lines)
-                {
-                    drawTextParameter +=
-                        $"drawtext=enable='between(t,{textTimeRecord.StartSecond},{textTimeRecord.EndSecond})'" +
-                        $":fontfile={pathToFonts}" +
-                        $":text='{line}'" +
-                        $":fontsize={fontSize}" +
-                        ":fontcolor=red" +
-                        ":x=(main_w/2-text_w/2)" +
-                        $":y=main_h-(text_h*({textTimeRecord.Lines.Count} -{i})) - 15,";
-                    i++;
-                }
-            }
-            drawTextParameter = drawTextParameter.Remove(drawTextParameter.LastIndexOf(','));
+            string outTextStream; 
+            var drawTextParameter = this.BuildDrawTextFilter("[in]", textTimeRecords, pathToFonts, fontSize, out outTextStream);
             var scriptFile = this.GetIntermediateFile(".txt");
             File.WriteAllText(scriptFile, drawTextParameter, Encoding.Default);
 
-            this.parametersAccumulator.AppendFormat(" -filter_script:v \"{0}\"", scriptFile);
+            this.parametersAccumulator.AppendFormat(" -filter_script:v \"{0}\" -map {1}", scriptFile, outTextStream);
             return this;
         }
 
@@ -234,7 +223,11 @@ namespace FFMpegWrapper
             }
             trims += string.Format(CultureInfo.InvariantCulture, "[0:v]trim=start={0},setpts=PTS-STARTPTS[v{1}];", previousTrimEnd, trimIndex);
             merges += $"[v{trimIndex}]";
-            this.parametersAccumulator.Append($" -filter_complex \"{trims} {warps} {merges}concat=n={warpRecords.Length * 2 + 1}:v=1:a=0[out]\" -map [out] ");
+            
+            var scriptFile = this.GetIntermediateFile(".txt");
+            File.WriteAllText(scriptFile, $"{trims} {warps} {merges}concat=n={warpRecords.Length * 2 + 1}:v=1:a=0[out]", Encoding.Default);
+            
+            this.parametersAccumulator.Append($" -filter_complex_script:v \"{scriptFile}\" -map [out] ");
             return this;
         }
 
@@ -333,6 +326,120 @@ namespace FFMpegWrapper
         private string GetIntermediateFile(string ext)
         {
             return this.temporaryFilesStorage.GetIntermediateFile(ext);
+        }
+
+        private string BuildConcatFilter(int count, Size finalScale, out string outVideoStream, out string outAudioStream)
+        {
+            var setDARfilter = new StringBuilder();
+            var concatFilterBuilder = new StringBuilder();
+            for (var i = 0; i < count; i++)
+            {
+                if (finalScale.IsEmpty)
+                {
+                    setDARfilter.Append($"[{i}:v]setsar=16/9[v{i}];");
+                }
+                else
+                {
+                    setDARfilter.Append($"[{i}:v]scale={finalScale.Width}x{finalScale.Height},setsar=16/9[v{i}];");
+                }
+                concatFilterBuilder.Append($"[v{i}][{i}:a]");
+            }
+
+            outVideoStream = "[vv]";
+            outAudioStream = "[a]";
+            setDARfilter.Append(concatFilterBuilder).Append($"concat=n={count}:v=1:a=1{outVideoStream}{outAudioStream}");
+            return setDARfilter.ToString();
+        }
+
+        private string BuildDrawTextFilter(string inputStream, IList<TextTimeRecord> textTimeRecords, string pathToFonts, int fontSize, out string outputStream)
+        {
+            if (!textTimeRecords.Any())
+            {
+                outputStream = inputStream;
+                return string.Empty;
+            }
+            
+            var drawTextFitler = inputStream;
+            foreach (var textTimeRecord in textTimeRecords)
+            {
+                var i = 0;
+                foreach (var line in textTimeRecord.Lines)
+                {
+                    drawTextFitler +=
+                        $"drawtext=enable='between(t,{textTimeRecord.StartSecond.ToString(CultureInfo.InvariantCulture)},{textTimeRecord.EndSecond.ToString(CultureInfo.InvariantCulture)})'" +
+                        $":fontfile={pathToFonts}" +
+                        $":text='{line}'" +
+                        $":fontsize={fontSize}" +
+                        ":fontcolor=red" +
+                        ":x=(main_w/2-text_w/2)" +
+                        $":y=main_h-(text_h*({textTimeRecord.Lines.Count} -{i})) - 15,";
+                    i++;
+                }
+            }
+
+            var lastCommaIndex = drawTextFitler.LastIndexOf(',');
+            if (lastCommaIndex != -1)
+            {
+                drawTextFitler = drawTextFitler.Remove(lastCommaIndex);
+            }
+            outputStream = "[text_out]";
+            drawTextFitler += outputStream;
+            return drawTextFitler;
+        }
+
+        private string BuildDrawImagesFilter(string inputStream, int inputImagesStartsAt, IList<DrawImageTimeRecord> imagesTimeTable, List<string> imagesFiles, out string outputStream)
+        {
+            var totalFilterScript = "";
+            if (!imagesTimeTable.Any())
+            {
+                outputStream = inputStream;
+                return totalFilterScript;
+            }
+
+            const string OverlayTemplate = "{0}{1}overlay={2}:{3}:enable='between(t,{4},{5})'{6}";
+            var previousStream = inputStream;
+            var id = inputImagesStartsAt;
+            foreach (var timeRecord in imagesTimeTable)
+            {
+                var imageFile = this.GetIntermediateFile(".png");
+                imagesFiles.Add(imageFile);
+                File.WriteAllBytes(imageFile, timeRecord.ImageData);
+                totalFilterScript += string.Format(CultureInfo.InvariantCulture,
+                    OverlayTemplate,
+                    previousStream,
+                    $"[{id}:v]",
+                    timeRecord.LeftOffset,
+                    timeRecord.TopOffset,
+                    timeRecord.ImageStartSecond,
+                    timeRecord.ImageEndSecond,
+                    $" [tmp{id}];");
+                previousStream = $"[tmp{id}]";
+                id++;
+            }
+
+            outputStream = previousStream;
+            totalFilterScript = totalFilterScript.Remove(totalFilterScript.LastIndexOf(';'));
+
+            return totalFilterScript;
+        }
+
+        private string GetFileWithInputs(IEnumerable<string> inputFiles, IEnumerable<string> inputImages)
+        {
+            var fileWithInputs = this.GetIntermediateFile(".txt");
+            using (var sw = new StreamWriter(fileWithInputs))
+            {
+                foreach (var inputFile in inputFiles)
+                {
+                    sw.WriteLine("file '{0}'", inputFile);
+                }
+                foreach (var inputImageFile in inputImages)
+                {
+                    sw.WriteLine("file '{0}'", inputImageFile);
+                }
+                sw.Flush();
+            }
+
+            return fileWithInputs;
         }
     }
 }

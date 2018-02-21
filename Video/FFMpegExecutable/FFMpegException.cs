@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FFMpegWrapper
+namespace FFMpegExecutable
 {
     public class FFMpegException : Exception
     {

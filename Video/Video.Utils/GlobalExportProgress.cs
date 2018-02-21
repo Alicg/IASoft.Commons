@@ -98,14 +98,15 @@ namespace Video.Utils
             // по одной операции для вырезания каждого эпизода.
             var totalOperationsExpected = videoRenderOptions.Count;
 
-            var differentSourcesCount = videoRenderOptions.Select(v => v.FilePath).Distinct().Count();
-            // склеить эпизоды в группы одного формата.
+            var differentSourcesCount = videoRenderOptions.Select(v => v.FilePath).GroupBy(v => v).Count(v => v.Count() > 1);
+            // склеить эпизоды в группы одного формата (если таких эпизодов несколько).
             totalOperationsExpected += differentSourcesCount;
 
+            var totalOperationsForConcat = 0;
             if (differentSourcesCount > 1)
             {
                 // один раз склеить все группы разных форматов.
-                totalOperationsExpected += 1;
+                totalOperationsForConcat = 1;
             }
 
             var totalOverlayTextRecords = videoRenderOptions
@@ -114,7 +115,9 @@ namespace Video.Utils
             var totalOverlayImageRecords = videoRenderOptions
                 .SelectMany(v => v.ImagesTimeTable ?? new List<DrawImageTimeRecord>()).Count();
             
-            totalOperationsExpected += Math.Max(totalOverlayTextRecords, totalOverlayImageRecords);
+            var totalOperationsForFilter = Math.Max(totalOperationsForConcat, Math.Max(totalOverlayTextRecords, totalOverlayImageRecords)) * 2;
+
+            totalOperationsExpected += totalOperationsForFilter;
 
             // по одной операции для каждого эффекта времени.
             totalOperationsExpected += videoRenderOptions.Count(v => v.TimeWarpSettings != null && v.TimeWarpSettings.Any());

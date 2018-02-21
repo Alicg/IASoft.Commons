@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FFMpegCommandBuilderTests.cs" />
     <Compile Include="FFMpegTests.cs" />
     <Compile Include="FFMpegVideoRendererTests.cs" />
     <Compile Include="SampleFiles.cs" />
@@ -97,6 +98,10 @@
     <ProjectReference Include="..\..\Utils\Utils.csproj">
       <Project>{34B54E00-DF35-4414-8E6F-59A24C895925}</Project>
       <Name>Utils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Video\FFMpegExecutable\FFMpegExecutable.csproj">
+      <Project>{041964d8-9e28-4471-a3fc-5100953b2eb3}</Project>
+      <Name>FFMpegExecutable</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Video\FFMpegWrapper\FFMpegWrapper.csproj">
       <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>

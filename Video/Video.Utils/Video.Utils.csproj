@@ -78,6 +78,10 @@
       <Project>{34b54e00-df35-4414-8e6f-59a24c895925}</Project>
       <Name>Utils</Name>
     </ProjectReference>
+    <ProjectReference Include="..\FFMpegExecutable\FFMpegExecutable.csproj">
+      <Project>{041964D8-9E28-4471-A3FC-5100953B2EB3}</Project>
+      <Name>FFMpegExecutable</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FFMpegWrapper\FFMpegWrapper.csproj">
       <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>
       <Name>FFMpegWrapper</Name>

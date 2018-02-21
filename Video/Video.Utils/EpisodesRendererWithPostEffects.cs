@@ -57,8 +57,8 @@ namespace Video.Utils
                 ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
                 var simpleEpisodeGroupsToConcat = this.RenderGroupsOfSameFormatEpisodes(ffMpeg, temporaryFilesStorage);
-                var pathForConcatenatedEpisodeGroups = this.ConcatAllEpisodeGroups(simpleEpisodeGroupsToConcat, ffMpeg, temporaryFilesStorage);
-                this.RenderTextAndImageAndTimeWarps(pathForConcatenatedEpisodeGroups, ffMpeg, temporaryFilesStorage);
+                //var pathForConcatenatedEpisodeGroups = this.ConcatAllEpisodeGroups(simpleEpisodeGroupsToConcat, ffMpeg, temporaryFilesStorage);
+                this.ConcatAndRenderTextAndImageAndTimeWarps(simpleEpisodeGroupsToConcat, ffMpeg, temporaryFilesStorage);
             }
         }
 
@@ -115,7 +115,7 @@ namespace Video.Utils
             return pathForConcatenatedEpisodeGroups;
         }
 
-        private void RenderTextAndImageAndTimeWarps(string pathForConcatenatedEpisodeGroups, FFMpeg ffMpeg, TemporaryFilesStorage temporaryFilesStorage)
+        private void ConcatAndRenderTextAndImageAndTimeWarps(List<string> simpleEpisodeGroupsToConcat, FFMpeg ffMpeg, TemporaryFilesStorage temporaryFilesStorage)
         {
             var textTimeTableForConcatenatedEpisodeGroups = new List<TextTimeRecord>();
             var imagesTimeTableForConcatenatedEpisodeGroups = new List<DrawImageTimeRecord>();
@@ -148,25 +148,33 @@ namespace Video.Utils
                 currentPosition += videoRenderOption.DurationSeconds;
             }
 
-            if (!textTimeTableForConcatenatedEpisodeGroups.Any() &&
+            if (simpleEpisodeGroupsToConcat.Count == 1 &&
+                !textTimeTableForConcatenatedEpisodeGroups.Any() &&
                 !imagesTimeTableForConcatenatedEpisodeGroups.Any() &&
                 !timeWarpForConcatenatedEpisodeGroups.Any())
             {
-                File.Move(pathForConcatenatedEpisodeGroups, this.outputFile);
+                File.Move(simpleEpisodeGroupsToConcat.First(), this.outputFile);
             }
 
-            if (textTimeTableForConcatenatedEpisodeGroups.Any() || imagesTimeTableForConcatenatedEpisodeGroups.Any())
+            string pathForConcatenatedEpisodeGroups;
+            if (simpleEpisodeGroupsToConcat.Count > 1 || textTimeTableForConcatenatedEpisodeGroups.Any() || imagesTimeTableForConcatenatedEpisodeGroups.Any())
             {
                 var output = timeWarpForConcatenatedEpisodeGroups.Any()
                     ? temporaryFilesStorage.GetIntermediateFile(Path.GetExtension(this.outputFile))
                     : this.outputFile;
 
-                ffMpeg.DrawImagesAndText(pathForConcatenatedEpisodeGroups,
+                ffMpeg.ConcatAndDrawImagesAndText(
+                    simpleEpisodeGroupsToConcat,
                     imagesTimeTableForConcatenatedEpisodeGroups,
                     textTimeTableForConcatenatedEpisodeGroups,
+                    this.outputSize,
                     output,
                     this.globalExportProgress);
                 pathForConcatenatedEpisodeGroups = output;
+            }
+            else
+            {
+                pathForConcatenatedEpisodeGroups = simpleEpisodeGroupsToConcat.First();
             }
 
             if (timeWarpForConcatenatedEpisodeGroups.Any())
@@ -227,14 +235,17 @@ namespace Video.Utils
                 Math.Abs(v.DurationSeconds - cutOptions.Duration) < double.Epsilon);
             var realDuration = ffMpeg.GetVideoInfo(cutOptions.OutputFile).Duration;
             var durationDif = realDuration.TotalSeconds - renderOptions.DurationSeconds;
+            
+            // Корректируем начало-конец эффектов в зависимости от рельной длительности эпизода.
+            // Т.к. после вырезания текущим способом, эпизод может начинаться раньше чем задано начало.
             renderOptions.ImagesTimeTable.ForEach(v =>
             {
                 v.ImageStartSecond += durationDif;
                 v.ImageEndSecond += durationDif;
             });
+            // Начало текста не изменяем, т.к. на данный момент там всегда 0 и он должен быть виден в течение всего видео (в будущем это может измениться).
             renderOptions.OverlayTextTimeTable.ForEach(v =>
             {
-                v.StartSecond += durationDif;
                 v.EndSecond += durationDif;
             });
             renderOptions.TimeWarpSettings.ForEach(v =>

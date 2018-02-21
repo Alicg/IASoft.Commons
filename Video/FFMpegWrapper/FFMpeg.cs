@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using FFMpegExecutable;
 using Utils.Extensions;
 
 namespace FFMpegWrapper
@@ -24,24 +25,7 @@ namespace FFMpegWrapper
         static FFMpeg()
         {
             const string AppDir = "";
-            pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
-            var ffMpegFromResources = typeof(FFMpeg).Assembly.GetManifestResourceStream("FFMpegWrapper.ffmpeg.exe");
-            if (ffMpegFromResources == null)
-            {
-                throw new FFMpegException("FFMpegWrapper.ffmpeg.exe wasn't found in resources.", string.Empty);
-            }
-            if (!File.Exists(pathToFfMpegExe))
-            {
-                ffMpegFromResources.WriteToFile(pathToFfMpegExe);
-            }
-            else
-            {
-                var existedFileSize = new FileInfo(pathToFfMpegExe).Length;
-                if (ffMpegFromResources.Length != existedFileSize)
-                {
-                    ffMpegFromResources.WriteToFile(pathToFfMpegExe);
-                }
-            }
+            pathToFfMpegExe = FFMpegExeLoader.UnpackFFMpegExe();
 
             fontsPath = Path.Combine(AppDir, "arialbd.ttf");
             if (!File.Exists(fontsPath))
@@ -88,6 +72,7 @@ namespace FFMpegWrapper
             var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
                 .ConcatInputsFrom(inputFiles)
                 .OutputVideoCodec(vCodec)
+                .OutputPreset(PresetParameters.SuperFast)
                 .OutputAudioCodec(aCodec)
                 .OutputTo(outputFile)
                 .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
@@ -177,6 +162,30 @@ namespace FFMpegWrapper
 
             this.ExecuteFFMpegCommand(command, "TIME_WARP");
             globalExportProgress.IncreaseOperationsDone(command.ProcessId, timeWarps.Count);
+        }
+
+        public void ConcatAndDrawImagesAndText(IList<string> inputFilesToConcat, IList<DrawImageTimeRecord> imagesTimeTable, List<TextTimeRecord> overlayText, Size finalScale, string outputFile, IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            const int FontSize = 30;
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
+                .ConcatDrawImagesAndText(inputFilesToConcat, imagesTimeTable, overlayText, finalScale, fontsPath, FontSize)
+                .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
+                .OutputPreset(PresetParameters.SuperFast)
+                .OutputAudioCodec(FFMpegCutOptions.DefaultAudioCodec) 
+                .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
+                .BuildCommand(pathToFfMpegExe);
+
+            this.ExecuteFFMpegCommand(command, "DrawText");
+            
+            //одна операция для concat-a без постэффектов.
+            var operationsCountForConcat = 1;
+            var operationsCountForConcatAndDrawImagesAndText =
+                Math.Max(operationsCountForConcat, Math.Max(imagesTimeTable.Count, overlayText.Count)) * 2;
+            globalExportProgress.IncreaseOperationsDone(command.ProcessId, operationsCountForConcatAndDrawImagesAndText);
         }
 
         public void DrawImagesAndText(string inputFile, IList<DrawImageTimeRecord> imagesTimeTable, List<TextTimeRecord> overlayText, string outputFile, IGlobalExportProgress globalExportProgress)

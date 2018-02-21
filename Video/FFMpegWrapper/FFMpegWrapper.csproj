@@ -68,7 +68,6 @@
     <Compile Include="FFMpegCommand.cs" />
     <Compile Include="FFMpegCommandBuilder.cs" />
     <Compile Include="FFMpegCancelledException.cs" />
-    <Compile Include="FFMpegException.cs" />
     <Compile Include="FFMpegImageQuality.cs" />
     <Compile Include="FFMpegLogger.cs" />
     <Compile Include="FFMpegVideoInfo.cs" />
@@ -86,9 +85,6 @@
     <Compile Include="VideoInfoParser.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ffmpeg.exe" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="arialbd.ttf" />
     <EmbeddedResource Include="times.ttf" />
   </ItemGroup>
@@ -99,6 +95,10 @@
     <ProjectReference Include="..\..\Utils\Utils.csproj">
       <Project>{34B54E00-DF35-4414-8E6F-59A24C895925}</Project>
       <Name>Utils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FFMpegExecutable\FFMpegExecutable.csproj">
+      <Project>{041964D8-9E28-4471-A3FC-5100953B2EB3}</Project>
+      <Name>FFMpegExecutable</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

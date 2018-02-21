@@ -1,4 +1,5 @@
 ﻿using System;
+using FFMpegExecutable;
 
 namespace FFMpegWrapper
 {
