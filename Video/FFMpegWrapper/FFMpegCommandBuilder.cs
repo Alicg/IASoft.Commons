@@ -336,11 +336,11 @@ namespace FFMpegWrapper
             {
                 if (finalScale.IsEmpty)
                 {
-                    setDARfilter.Append($"[{i}:v]setsar=16/9[v{i}];");
+                    setDARfilter.Append($"[{i}:v]setdar=16/9[v{i}];");
                 }
                 else
                 {
-                    setDARfilter.Append($"[{i}:v]scale={finalScale.Width}x{finalScale.Height},setsar=16/9[v{i}];");
+                    setDARfilter.Append($"[{i}:v]scale={finalScale.Width}x{finalScale.Height},setdar=16/9[v{i}];");
                 }
                 concatFilterBuilder.Append($"[v{i}][{i}:a]");
             }
