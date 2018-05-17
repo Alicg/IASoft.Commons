@@ -34,7 +34,7 @@
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
             ffmpegVideoRenderer.AddVideoEpisodes(
                 new VideoRenderOption(
-                    @"M:\MyPhotoVideo\2016.08.07 Байдарки\GOPR0041.MP4",
+                    SampleFiles.Helicopter_1min_48sec,
                     0,
                     15,
                     null,
@@ -50,7 +50,7 @@
                     new List<TimeWarpRecord> { new TimeWarpRecord(2, 4, 7) }));
             ffmpegVideoRenderer.AddVideoEpisodes(
                 new VideoRenderOption(
-                    @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4",
+                    SampleFiles.LowQualityVideo,
                     140,
                     15,
                     null,

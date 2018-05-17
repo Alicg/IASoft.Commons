@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Utils.Extensions;
 
 namespace FFMpegWrapper
 {
@@ -8,7 +9,9 @@ namespace FFMpegWrapper
         public TextTimeRecord(string text, double startSecond, double endSecond)
         {
             const int CharsInLine = 40;
-            this.Lines = GetTranspositionedText(text, CharsInLine).ToList();
+            var ffMpegPreparedText = text.Replace("\\\\", "\\\\\\\\").Replace("'", "'\\\\\\''").Replace("%", "\\\\\\%")
+                .Replace(":", "\\\\\\:");
+            this.Lines = GetTranspositionedText(ffMpegPreparedText, CharsInLine).ToList();
             this.StartSecond = startSecond;
             this.EndSecond = endSecond;
         }

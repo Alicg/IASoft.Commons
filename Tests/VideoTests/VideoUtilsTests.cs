@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.IO;
+using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
 using NUnit.Framework;
+using Utils.Extensions;
 using Video.Utils;
 
 namespace VideoTests
@@ -47,6 +50,15 @@ namespace VideoTests
             var videoInfo = new VideoUtils().GetVideoInfo(SampleFiles.SampleVideo_5sec);
             Assert.AreEqual(720, videoInfo.Height);
             Assert.AreEqual(1280, videoInfo.Width);
+        }
+
+        [Test(Description = "Needs administrator rights to create symbolic link.")]
+        public async void SymbolicLinkAsFFMpegInput_Test()
+        {
+            var symbolicLink = await FileSystemExtension.CreateFileSymbolicLink(@"D:\Dima\Work\Home\Handball videos\dragūnakturungtynės.mp4");
+            var videoInfo = new VideoUtils().GetVideoInfo(symbolicLink);
+            Assert.AreEqual(360, videoInfo.Height);
+            Assert.AreEqual(640, videoInfo.Width);
         }
     }
 }

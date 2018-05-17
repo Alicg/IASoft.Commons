@@ -40,6 +40,10 @@ namespace Video.Utils
 
         private bool CheckWhetherPlainConcatIsPossible(IList<VideoRenderOption> videoRenderOptions, bool ignoreOverlays)
         {
+            if (videoRenderOptions.Any(v => v.FilePath.Contains("https://") || v.FilePath.Contains("http://")))
+            {
+                return false;
+            }
             // если все эпизоды из одного видео, то их нарезка и склейка не требуют перекодирования.
             var plainConcatIsPossible = videoRenderOptions.Distinct(v => v.FilePath).Count() == 1;
             if (plainConcatIsPossible)

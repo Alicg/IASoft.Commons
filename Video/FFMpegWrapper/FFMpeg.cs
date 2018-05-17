@@ -84,7 +84,7 @@ namespace FFMpegWrapper
             globalExportProgress.IncreaseOperationsDone(command.ProcessId);
         }
 
-        public void Cut(FFMpegCutOptions cutOptions)
+        public void Cut(FFMpegCutOptions cutOptions, bool muteProgress = false)
         {
             EnsureFileDoesNotExist(cutOptions.OutputFile);
             var cutCommandBuilder = new FFMpegCommandBuilder(this.temporaryFilesStorage)
@@ -97,16 +97,22 @@ namespace FFMpegWrapper
             {
                 cutCommandBuilder = cutCommandBuilder.OutputScale(cutOptions.OutputSize);
             }
-            var command = cutCommandBuilder
+            cutCommandBuilder = cutCommandBuilder
                 .AppendCustom("-avoid_negative_ts 1 -max_muxing_queue_size 1000")
-                .OutputTo(cutOptions.OutputFile)
-                .WithProgressCallback(cutOptions.GlobalExportProgress.SetCurrentOperationProgress)
-                .WithStopSignal(this.stopSignal)
+                .OutputTo(cutOptions.OutputFile);
+            if (!muteProgress)
+            {
+                cutCommandBuilder = cutCommandBuilder.WithProgressCallback(cutOptions.GlobalExportProgress.SetCurrentOperationProgress);
+            }
+            var command = cutCommandBuilder.WithStopSignal(this.stopSignal)
                 .WithPriority(this.ffmpegProcessPriorityClass)
                 .BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "CUT");
-            cutOptions.GlobalExportProgress.IncreaseOperationsDone(command.ProcessId);
+            if (!muteProgress)
+            {
+                cutOptions.GlobalExportProgress.IncreaseOperationsDone(command.ProcessId);
+            }
         }
 
         public void DrawImage(string inputFile, List<DrawImageTimeRecord> imagesTimeTable, string outputFile, IGlobalExportProgress globalExportProgress)
@@ -161,15 +167,37 @@ namespace FFMpegWrapper
             var command = cutCommandBuilder.BuildCommand(pathToFfMpegExe);
 
             this.ExecuteFFMpegCommand(command, "TIME_WARP");
-            globalExportProgress.IncreaseOperationsDone(command.ProcessId, timeWarps.Count);
+            globalExportProgress.IncreaseOperationsDone(command.ProcessId, 1);
+        }
+
+        public void CutAndConcatAndDrawImagesAndText(IList<FFMpegCutInfo> cutInfosToConcat, IList<DrawImageTimeRecord> imagesTimeTable, List<TextTimeRecord> overlayText, Size finalScale, string outputFile, IGlobalExportProgress globalExportProgress)
+        {
+            EnsureFileDoesNotExist(outputFile);
+            const int FontSizeFor1024Width = 30;
+            var fontSize = finalScale.IsEmpty ? FontSizeFor1024Width : ((double)finalScale.Width / 1024) * FontSizeFor1024Width;
+            var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
+                .CutConcatDrawImagesAndText(cutInfosToConcat, imagesTimeTable, overlayText, finalScale, fontsPath, (int)fontSize)
+                .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
+                .OutputPreset(PresetParameters.SuperFast)
+                .OutputAudioCodec(FFMpegCutOptions.DefaultAudioCodec) 
+                .OutputTo(outputFile)
+                .WithProgressCallback(globalExportProgress.SetCurrentOperationProgress)
+                .WithStopSignal(this.stopSignal)
+                .WithPriority(this.ffmpegProcessPriorityClass)
+                .BuildCommand(pathToFfMpegExe, cutInfosToConcat.Aggregate(0.0, (t,c) => t + c.EndSecond - c.StartSecond));
+
+            this.ExecuteFFMpegCommand(command, "DrawText");
+            
+            globalExportProgress.IncreaseOperationsDone(command.ProcessId, 1);
         }
 
         public void ConcatAndDrawImagesAndText(IList<string> inputFilesToConcat, IList<DrawImageTimeRecord> imagesTimeTable, List<TextTimeRecord> overlayText, Size finalScale, string outputFile, IGlobalExportProgress globalExportProgress)
         {
             EnsureFileDoesNotExist(outputFile);
-            const int FontSize = 30;
+            const int FontSizeFor1024Width = 30;
+            var fontSize = finalScale.IsEmpty ? FontSizeFor1024Width : ((double)finalScale.Width / 1024) * FontSizeFor1024Width;
             var command = new FFMpegCommandBuilder(this.temporaryFilesStorage)
-                .ConcatDrawImagesAndText(inputFilesToConcat, imagesTimeTable, overlayText, finalScale, fontsPath, FontSize)
+                .ConcatDrawImagesAndText(inputFilesToConcat, imagesTimeTable, overlayText, finalScale, fontsPath, (int)fontSize)
                 .OutputVideoCodec(FFMpegCutOptions.DefaultVideoCodec)
                 .OutputPreset(PresetParameters.SuperFast)
                 .OutputAudioCodec(FFMpegCutOptions.DefaultAudioCodec) 

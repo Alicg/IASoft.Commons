@@ -7,27 +7,42 @@ namespace FFMpegExecutable
     {
         public static string UnpackFFMpegExe()
         {
+            UnpackResource("avcodec-57.dll");
+            UnpackResource("avdevice-57.dll");
+            UnpackResource("avfilter-6.dll");
+            UnpackResource("avformat-57.dll");
+            UnpackResource("avutil-55.dll");
+            UnpackResource("ffplay.exe");
+            UnpackResource("ffprobe.exe");
+            UnpackResource("postproc-54.dll");
+            UnpackResource("swresample-2.dll");
+            UnpackResource("swscale-4.dll");
+            return UnpackResource("ffmpeg.exe");
+        }
+
+        private static string UnpackResource(string resourceName)
+        {
             const string AppDir = "";
-            var pathToFfMpegExe = Path.Combine(AppDir, "ffmpeg.exe");
-            var ffMpegFromResources = typeof(FFMpegExeLoader).Assembly.GetManifestResourceStream("FFMpegExecutable.ffmpeg.exe");
-            if (ffMpegFromResources == null)
+            var pathToResource = Path.Combine(AppDir, resourceName);
+            var resourceFromResources = typeof(FFMpegExeLoader).Assembly.GetManifestResourceStream($"FFMpegExecutable.{resourceName}");
+            if (resourceFromResources == null)
             {
-                throw new FFMpegException("FFMpegExecutable.ffmpeg.exe wasn't found in resources.", string.Empty);
+                throw new FFMpegException($"FFMpegExecutable.{resourceName} wasn't found in resources.", string.Empty);
             }
-            if (!File.Exists(pathToFfMpegExe))
+            if (!File.Exists(pathToResource))
             {
-                ffMpegFromResources.WriteToFile(pathToFfMpegExe);
+                resourceFromResources.WriteToFile(pathToResource);
             }
             else
             {
-                var existedFileSize = new FileInfo(pathToFfMpegExe).Length;
-                if (ffMpegFromResources.Length != existedFileSize)
+                var existedFileSize = new FileInfo(pathToResource).Length;
+                if (resourceFromResources.Length != existedFileSize)
                 {
-                    ffMpegFromResources.WriteToFile(pathToFfMpegExe);
+                    resourceFromResources.WriteToFile(pathToResource);
                 }
             }
 
-            return pathToFfMpegExe;
+            return pathToResource;
         }
     }
 }

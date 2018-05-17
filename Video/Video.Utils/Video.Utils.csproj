@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CutOptionsBuilder.cs" />
-    <Compile Include="EpisodesRendererWithPostEffects.cs" />
+    <Compile Include="EpisodesRendererAllFiltersInSingleCommands.cs" />
     <Compile Include="EpisodesRenderer.cs" />
     <Compile Include="FFMpegVideoRenderer.cs" />
     <Compile Include="GlobalExportProgress.cs" />

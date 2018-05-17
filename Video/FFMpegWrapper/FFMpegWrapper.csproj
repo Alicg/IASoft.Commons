@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FFMpegCutInfo.cs" />
     <Compile Include="FFMpegCutOptions.cs" />
     <Compile Include="DrawImageTimeRecord.cs" />
     <Compile Include="FFMpegCommand.cs" />

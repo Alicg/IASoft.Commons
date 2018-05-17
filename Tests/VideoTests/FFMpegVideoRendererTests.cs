@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using FFMpegExecutable;
 using FFMpegWrapper;
 using NUnit.Framework;
 using Video.Utils;
@@ -48,7 +49,8 @@ namespace VideoTests
                 null,
                 (d, exception) =>
                 {
-                    Assert.IsTrue(exception is DirectoryNotFoundException);
+                    Assert.IsTrue(exception is FFMpegException);
+                    Assert.IsTrue(exception.Message.Contains("No such file or directory"));
                     Assert.Pass();
                 });
         }
@@ -135,7 +137,7 @@ namespace VideoTests
             ffmpegVideoRenderer.StartRender(Output);
             sw.Stop();
             Assert.IsTrue(File.Exists(Output));
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 3000);
+            Assert.LessOrEqual(sw.ElapsedMilliseconds, 20000);
         }
 
         [Test]
@@ -149,6 +151,33 @@ namespace VideoTests
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 550, 15));
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 350, 15));
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1750, 15));
+
+            double previousProgress = 0;
+            ffmpegVideoRenderer.StartRender(
+                Output,
+                (s, d, arg3, arg4) =>
+                {
+                    Assert.GreaterOrEqual(d, previousProgress);
+                    Assert.GreaterOrEqual(d, 0);
+                    Assert.LessOrEqual(d, 1);
+                    previousProgress = d;
+                });
+            sw.Stop();
+            Thread.Sleep(1000);//чтобы лог закончил заполняться.
+            Assert.IsTrue(File.Exists(Output));
+        }
+        
+        [Test]
+        public void Cut5Episodes_YoutubeSource_WithText_NoImages_ProgressTest()
+        {
+            const string Output = OutputFolder + "Cut5Episodes_NoText_NoImages.mkv";
+            var sw = Stopwatch.StartNew(); 
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealYoutubeVideoUrl, 150, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealYoutubeVideoUrl, 250, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealYoutubeVideoUrl, 350, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealYoutubeVideoUrl, 450, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealYoutubeVideoUrl, 550, 15));
 
             double previousProgress = 0;
             ffmpegVideoRenderer.StartRender(
@@ -289,15 +318,15 @@ namespace VideoTests
         }
 
         [Test]
-        public void Cut200Episodes_WithText_WithImages_WithTimeWarps_PerformanceTest()
+        public void Cut25Episodes_WithText_WithImages_WithTimeWarps_PerformanceTest()
         {
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
             int totalDuration = 0;
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 25; i++)
             {
                 ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(
-                    SampleFiles.RealInputVideoAVI,
+                    SampleFiles.RealInputVideoAVI2,
                     totalDuration,
                     15,
                     new List<TextTimeRecord> {new TextTimeRecord(i.ToString(), 0, 15)},
@@ -306,12 +335,12 @@ namespace VideoTests
                         new DrawImageTimeRecord(File.ReadAllBytes(SampleFiles.SamplePngImage), 100, 100, 3, 5)
                     },
                     new List<TimeWarpRecord> {new TimeWarpRecord(3, 6, 0.5)}));
-                totalDuration += 30;
+                totalDuration += 20;
             }
 
             ffmpegVideoRenderer.StartRender(OutputFolder + "Cut25Episodes_WithText_WithImages_WithTimeWarps.mp4");
             sw.Stop();
-            //Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 0, 20), sw.Elapsed.ToString());
+            Assert.LessOrEqual(sw.Elapsed, new TimeSpan(0, 3, 0), sw.Elapsed.ToString());
             Assert.IsTrue(File.Exists(OutputFolder + "Cut25Episodes_WithText_WithImages_WithTimeWarps.mp4"));
         }
 
@@ -345,10 +374,13 @@ namespace VideoTests
             }
             this.Cut1Episode_NoText_NoImages_Test();
             this.Cut6Episodes_WithText_NoImages_DIVX_Test();
+            
+            // ждем пока лог заполнится
+            Thread.Sleep(1000);
             var logText = File.ReadAllText(LogFilePath);
 
             var regex = new Regex("\r\n-----------*.?--------------\r\n");
-            Assert.AreEqual(10, regex.Matches(logText).Count);
+            Assert.AreEqual(4, regex.Matches(logText).Count);
         }
 
         [Test]
@@ -375,7 +407,7 @@ namespace VideoTests
         }
 
         [Test]
-        public void Cut3SameEpisodes_WithText_OneImages_FinishCallback_Test()
+        public void Cut3Episodes_WithText_OneImages_OneTimewarp_Progress_Test()
         {
             var sw = Stopwatch.StartNew();
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
@@ -392,14 +424,15 @@ namespace VideoTests
                 300,
                 15,
                 new List<TextTimeRecord> {new TextTimeRecord("Third text", 0, 15)},
-                new List<DrawImageTimeRecord>()));
+                new List<DrawImageTimeRecord>(),
+                new List<TimeWarpRecord> {new TimeWarpRecord(3, 6, 0.5)}));
             ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI,
                 500,
                 15,
                 new List<TextTimeRecord>(),
                 new List<DrawImageTimeRecord>()));
             double currentProgress = 0;
-            var outputFilePath = OutputFolder + "Cut3SameEpisodes_WithText_NoImages_FinishCallbackTest.mkv";
+            var outputFilePath = OutputFolder + "Cut3Episodes_WithText_OneImages_OneTimewarp.mkv";
             ffmpegVideoRenderer.StartRender(
                 outputFilePath,
                 (fileName, percent, currentTime, estimatedTime) =>
@@ -445,6 +478,34 @@ namespace VideoTests
         }
 
         [Test]
+        public void Cut1EpisodeWithText_FromSmallSizeVideo_Test()
+        {
+            var cancelationTokenSource = new CancellationTokenSource();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer(cancelationTokenSource);
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo,
+                40,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Hello world. Go back and force. Return to the middle.", 0, 15)}));
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut1EpisodeWithText_FromSmallSizeVideo.mp4", new Size(640, 360));
+
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut1EpisodeWithText_FromSmallSizeVideo.mp4"));
+        }
+
+        [Test]
+        public void Cut1EpisodeWithSpecialSymbolsInText_Test()
+        {
+            var cancelationTokenSource = new CancellationTokenSource();
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer(cancelationTokenSource);
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo,
+                40,
+                15,
+                new List<TextTimeRecord> {new TextTimeRecord("Don't do it again: \"%MARGUS%\"", 0, 15)}));
+            ffmpegVideoRenderer.StartRender(OutputFolder + "Cut1EpisodeWithSpecialSymbolsInText.mp4", new Size(640, 360));
+
+            Assert.IsTrue(File.Exists(OutputFolder + "Cut1EpisodeWithSpecialSymbolsInText.mp4"));
+        }
+
+        [Test]
         public void Cut1Episode_NotExistedInput_ExceptionTest()
         {
             var ffmpegVideoRenderer = new FFMpegVideoRenderer();
@@ -456,14 +517,40 @@ namespace VideoTests
                     },
                 (d, exception) =>
                     {
-                        var aggregateException = exception as AggregateException;
-                        var firstException = aggregateException.InnerException;
-                        Assert.IsTrue(firstException.Message.Contains("No such file or directory"));
+                        Assert.IsTrue(exception.Message.Contains("No such file or directory"));
                     });
             Assert.IsFalse(File.Exists(OutputFolder + "Cut1Episode_NoText_NoImages.mp4"));
         }
 
+        [Test]
+        public void CutFromTheEndOfLowQualityVideo_ExceptionTest()
+        {
+            var ffmpegVideoRenderer = new FFMpegVideoRenderer();
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 691, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI, 1386, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.RealInputVideoAVI2, 2198, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 3157, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 3644, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 4251, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 4800, 15));
+            ffmpegVideoRenderer.AddVideoEpisodes(new VideoRenderOption(SampleFiles.LowQualityVideo, 5436, 15));
 
+            var sw = Stopwatch.StartNew();
+            double currentProgress = 0;
+            ffmpegVideoRenderer.StartRender(OutputFolder + "CutFromTheEndOfLowQualityVideo.mp4", new Size(640, 360),
+                (fileName, percent, currentTime, estimatedTime) =>
+                {
+                    //currentProgress = percent;
+                    //Console.WriteLine("{0}% {1}sec from {2}sec", percent, currentTime, estimatedTime);
+                    //Assert.GreaterOrEqual(currentTime, 0);
+                },
+                (totalDuration, exception) =>
+                {
+                    //Assert.AreEqual(1, currentProgress);
+                });
+            sw.Stop();
+            Assert.IsTrue(File.Exists(OutputFolder + "CutFromTheEndOfLowQualityVideo.mp4"));
+        }
 
         [TearDown]
         public void CleanUp()

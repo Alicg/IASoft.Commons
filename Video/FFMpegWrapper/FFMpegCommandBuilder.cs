@@ -102,6 +102,73 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder CutConcatDrawImagesAndText(IList<FFMpegCutInfo> filesToConcat,
+            IList<DrawImageTimeRecord> imagesTimeTable,
+            IList<TextTimeRecord> textTimeRecords,
+            Size finalScale,
+            string pathToFonts,
+            int fontSize)
+        {
+            string outConcatVStream;
+            string outConcatAStream;
+            var filePathIndexes = new List<string>();
+            foreach (var cutInfo in filesToConcat)
+            {
+                if (!filePathIndexes.Contains(cutInfo.InputPath))
+                {
+                    filePathIndexes.Add(cutInfo.InputPath);
+                }
+
+                cutInfo.InputId = filePathIndexes.IndexOf(cutInfo.InputPath);
+            }
+
+            var concatFilter = this.BuildCutAndConcatFilter(filesToConcat, finalScale, out outConcatVStream, out outConcatAStream);
+
+            var imagesFiles = new List<string>();
+            string imageStream;
+            var drawImagesFilter = this.BuildDrawImagesFilter(outConcatVStream,
+                filesToConcat.Count,
+                imagesTimeTable,
+                imagesFiles,
+                out imageStream);
+
+            string textOutputStream;
+            var drawTextFilter = this.BuildDrawTextFilter(imageStream,
+                textTimeRecords,
+                pathToFonts,
+                fontSize,
+                out textOutputStream);
+
+            var semicoloneAfterConcatFitler =
+                !string.IsNullOrEmpty(drawImagesFilter) || !string.IsNullOrEmpty(drawTextFilter)
+                    ? ";"
+                    : "";
+            var semicoloneBetweenImageAndTextFilters =
+                !string.IsNullOrEmpty(drawImagesFilter) && !string.IsNullOrEmpty(drawTextFilter)
+                    ? ";"
+                    : "";
+            var scriptFile = this.GetIntermediateFile(".txt");
+            File.WriteAllText(scriptFile,
+                concatFilter + semicoloneAfterConcatFitler + drawImagesFilter + semicoloneBetweenImageAndTextFilters +
+                drawTextFilter,
+                Encoding.Default);
+
+            var inputVideos = filesToConcat.Aggregate("",
+                (t, c) => $"{t} " +
+                          $"-ss {c.StartSecond.ToString(CultureInfo.InvariantCulture)} " +
+                          $"-t {(c.EndSecond - c.StartSecond).ToString(CultureInfo.InvariantCulture)} " +
+                          $"-i \"{c.InputPath}\"");
+            var inputImages = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
+
+            this.parametersAccumulator.AppendFormat(" {0} {1} -filter_complex_script:v \"{2}\" -map {3} -map {4}",
+                inputVideos,
+                inputImages,
+                scriptFile,
+                textOutputStream,
+                outConcatAStream);
+            return this;
+        }
+
         public FFMpegCommandBuilder ConcatDrawImagesAndText(IList<string> filesToConcat,
             IList<DrawImageTimeRecord> imagesTimeTable,
             IList<TextTimeRecord> textTimeRecords,
@@ -313,19 +380,63 @@ namespace FFMpegWrapper
             return this;
         }
 
-        public FFMpegCommand BuildCommand(string pathToFfMpegExe)
+        public FFMpegCommand BuildCommand(string pathToFfMpegExe, double? expectedDuration = null)
         {
             return new FFMpegCommand(pathToFfMpegExe,
                 this.parametersAccumulator.ToString(),
                 this.progressCallback,
                 this.stopSignal,
                 this.processPriorityClass,
+                expectedDuration,
                 this.ignoreErrors);
         }
 
         private string GetIntermediateFile(string ext)
         {
             return this.temporaryFilesStorage.GetIntermediateFile(ext);
+        }
+
+        private string BuildCutAndConcatFilter(IList<FFMpegCutInfo> cutInfos, Size finalScale, out string outVideoStream, out string outAudioStream)
+        {
+            var cutfilter = new StringBuilder();
+            var concatFilterBuilder = new StringBuilder();
+            int cutIndexer = 0;
+            foreach (var cutInfo in cutInfos)
+            {
+                if (finalScale.IsEmpty)
+                {
+                    cutfilter.Append(
+                        $"[{cutIndexer}:v]" +
+                        //$"trim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
+                        //$"setpts=PTS-STARTPTS," +
+                        $"setdar=16/9" +
+                        $"[v{cutIndexer}];");
+                }
+                else
+                {
+                    cutfilter.Append(
+                        $"[{cutIndexer}:v]" +
+                        //$"trim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
+                        //$"setpts=PTS-STARTPTS," +
+                        $"scale={finalScale.Width}x{finalScale.Height}," +
+                        $"setdar=16/9" +
+                        $"[v{cutIndexer}];");
+                }
+//                cutfilter.Append(
+//                    $"[{cutInfo.InputId}:a]" +
+//                    $"atrim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
+//                    $"asetpts=PTS-STARTPTS" +
+//                    $"[a{cutIndexer}];");
+
+                //concatFilterBuilder.Append($"[v{cutIndexer}][a{cutIndexer}]");
+                concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer}:a]");
+                cutIndexer++;
+            }
+
+            outVideoStream = "[vv]";
+            outAudioStream = "[a]";
+            cutfilter.Append(concatFilterBuilder).Append($"concat=n={cutInfos.Count}:v=1:a=1{outVideoStream}{outAudioStream}");
+            return cutfilter.ToString();
         }
 
         private string BuildConcatFilter(int count, Size finalScale, out string outVideoStream, out string outAudioStream)

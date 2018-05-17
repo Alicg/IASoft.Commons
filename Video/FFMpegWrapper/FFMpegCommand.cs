@@ -20,7 +20,7 @@ namespace FFMpegWrapper
         private TimeSpan commandDuration = TimeSpan.Zero;
 
         public FFMpegCommand(string pathToFfMpegExe, string command, bool ignoreError = false)
-            : this(pathToFfMpegExe, command, null, Observable.Empty<double>(), ProcessPriorityClass.High, ignoreError)
+            : this(pathToFfMpegExe, command, null, Observable.Empty<double>(), ProcessPriorityClass.High, null, ignoreError)
         {
         }
 
@@ -30,6 +30,7 @@ namespace FFMpegWrapper
             Action<double, double, int> progressCallback,
             IObservable<double> stopSignal,
             ProcessPriorityClass processPriorityClass,
+            double? commandDurationInSeconds = null,
             bool ignoreError = false)
         {
             this.pathToFfMpegExe = pathToFfMpegExe;
@@ -38,6 +39,10 @@ namespace FFMpegWrapper
             this.stopSignal = stopSignal;
             this.processPriorityClass = processPriorityClass;
             this.ignoreError = ignoreError;
+            if (commandDurationInSeconds.HasValue)
+            {
+                this.commandDuration = TimeSpan.FromSeconds(commandDurationInSeconds.Value);
+            }
         }
         
         public int ProcessId { get; private set; }
@@ -92,10 +97,8 @@ namespace FFMpegWrapper
                 {
                     // ignored
                 }
-                if (this.progressCallback != null)
-                {
-                    process.BeginErrorReadLine();
-                }
+                
+                process.BeginErrorReadLine();
                 process.WaitForExit();
             }
 
@@ -128,7 +131,7 @@ namespace FFMpegWrapper
             var durationRegex = new Regex("Duration:\\s(?<duration>[0-9:.]+)([,]|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
             var progressRegex = new Regex("time=(?<progress>[0-9:.]+)\\s", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
             var durationMatch = durationRegex.Match(ffmpegProgressLog);
-            if (durationMatch.Success)
+            if (this.commandDuration == TimeSpan.Zero && durationMatch.Success)
             {
                 TimeSpan duration;
                 TimeSpan.TryParse(durationMatch.Groups["duration"].Value, out duration);

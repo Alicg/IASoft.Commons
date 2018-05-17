@@ -34,7 +34,7 @@ namespace VideoTests
             const string OutputFile = OutputFolder + "Simple20SecCut_Medium.mp4";
             var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions = FFMpegCutOptions.BuildSimpleCatOptions(
-                @"M:\SVA.Videos\LRF -Basement- taurė 2017 Klaipėdos -Dragūnas- - HC Vilnius.mp4",
+                SampleFiles.RealInputVideoMP4,
                 OutputFile,
                 100,
                 20,
@@ -180,6 +180,24 @@ namespace VideoTests
 
             ffmpeg.DrawImagesAndText(SampleFiles.Helicopter_1min_48sec, images, text, OutputFile, GlobalExportProgress.Empty);
 
+            Assert.IsTrue(File.Exists(OutputFile));
+        }
+
+
+        [Test]
+        public void CutFromTheEndOfLowQualityVideo_Test()
+        {
+            var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
+            const string OutputFile = OutputFolder + "CutFromTheEndOfLowQualityVideo.mp4";
+            
+            var cutOptions = FFMpegCutOptions.BuildCatOptionsWithConvertations(SampleFiles.LowQualityVideo,
+                OutputFile,
+                4000,
+                20,
+                GlobalExportProgress.Empty,
+                new Size(640, 360));
+            ffmpeg.Cut(cutOptions);
+            
             Assert.IsTrue(File.Exists(OutputFile));
         }
 

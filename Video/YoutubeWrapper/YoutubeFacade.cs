@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -19,25 +20,21 @@ namespace YoutubeWrapper
         private readonly string clientId;
         private readonly string clientSecret;
         private readonly string applicationName;
-        private readonly string channelId;
         private readonly SecureString savedRefreshToken;
 
         private UserCredential connectedUserCredential;
 
-        public YoutubeFacade(string clientId, string clientSecret, string applicationName, string channelId, SecureString savedRefreshToken)
+        public YoutubeFacade(string clientId, string clientSecret, string applicationName, SecureString savedRefreshToken)
         {
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.applicationName = applicationName;
-            this.channelId = channelId;
             this.savedRefreshToken = savedRefreshToken;
         }
 
-        public async Task<string> UploadVideo(
-            string filePath,
+        public async Task<string> UploadVideo(string filePath,
             string title,
             string description,
-            string playlistName,
             CancellationToken cancellationToken,
             Action<double, double> progressChanged = null)
         {
@@ -116,10 +113,6 @@ namespace YoutubeWrapper
                     throw new YoutubeException(videosInsertRequest.ResponseBody.Status.UploadStatus);
                 }
             }
-            if (playlistName != null)
-            {
-                this.AddToPlayList(createdVideoId, playlistName, youtubeService);
-            }
             return createdVideoId;
         }
 
@@ -139,27 +132,40 @@ namespace YoutubeWrapper
             return video?.Id;
         }
 
-        private void AddToPlayList(string videoId, string playListName, YouTubeService service)
+        public async Task<IList<YoutubeChannel>> GetUserChannels()
         {
-            var playlistRequest = service.Playlists.List("snippet");
-            playlistRequest.ChannelId = this.channelId;
-            playlistRequest.MaxResults = 50;
-            var allPlaylists = playlistRequest.Execute();
-            var playlist = allPlaylists.Items.FirstOrDefault(v => v.Snippet.Title == playListName);
-            if (playlist == null)
-            {
-                return;
-            }
+            var youtubeService = this.ConnectToYoutubeService();
+            var channelsListRequest = youtubeService.Channels.List("snippet");
+            channelsListRequest.Mine = true;
+            var channelsResponse = await channelsListRequest.ExecuteAsync();
+            var channels = channelsResponse.Items;
+            return channels.Select(v => new YoutubeChannel{Id = v.Id, Title = v.Snippet.Title}).ToList();
+        }
+
+        public async Task<IList<YoutubePlaylist>> GetChannelPlaylists(string channelId)
+        {
+            var youtubeService = this.ConnectToYoutubeService();
+            var playlistListRequest = youtubeService.Playlists.List("snippet");
+            playlistListRequest.ChannelId = channelId;
+            playlistListRequest.MaxResults = 50;
+            var channelsResponse = await playlistListRequest.ExecuteAsync();
+            var channels = channelsResponse.Items;
+            return channels.Select(v => new YoutubePlaylist {Id = v.Id, Title = v.Snippet.Title}).ToList();
+        }
+
+        public async Task AddToPlayList(string videoId, string playListId)
+        {
+            var youtubeService = this.ConnectToYoutubeService();
             var newPlaylistItem = new PlaylistItem
             {
                 Snippet =
                     new PlaylistItemSnippet
                     {
-                        PlaylistId = playlist.Id,
+                        PlaylistId = playListId,
                         ResourceId = new ResourceId {Kind = "youtube#video", VideoId = videoId}
                     }
             };
-            service.PlaylistItems.Insert(newPlaylistItem, "snippet").Execute();
+            await youtubeService.PlaylistItems.Insert(newPlaylistItem, "snippet").ExecuteAsync();
         }
 
         private YouTubeService ConnectToYoutubeService()

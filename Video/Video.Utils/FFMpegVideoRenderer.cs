@@ -53,7 +53,7 @@ namespace Video.Utils
             
             // TODO: подкоректировать в соответствии с эксперементальными затратами на конвертацию.
             // Сейчас это вырезать эпизоды, нарисовать по ним текст+штрихи и в конце один раз все склеить.
-            var globalExportProgress = GlobalExportProgress.BuildFromRenderOptionsPostEffect(this.videoRenderOptions, callbackAction);
+            var globalExportProgress = GlobalExportProgress.BuildFromRenderOptionsSingleCommand(this.videoRenderOptions, callbackAction);
             try
             {
                 try
@@ -68,7 +68,7 @@ namespace Video.Utils
                         this.cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    var episodesRenderer = new EpisodesRendererWithPostEffects(this.videoRenderOptions,
+                    var episodesRenderer = new EpisodesRendererAllFiltersInSingleCommands(this.videoRenderOptions,
                         outputFile,
                         outputSize,
                         processPriorityClass,

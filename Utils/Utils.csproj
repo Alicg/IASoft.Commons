@@ -78,6 +78,7 @@
     <Compile Include="Comparers\CustomComparer.cs" />
     <Compile Include="Compression\CompressionUtils.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="CursorExtensions.cs" />
     <Compile Include="DataStrucures\LinkedLists\CircularLinkedList.cs" />
     <Compile Include="DataStrucures\LinkedLists\Node.cs" />
     <Compile Include="DataStrucures\TwoWayDictionary.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Geometry\WpfDouglasPeuckerAlgorithm.cs" />
     <Compile Include="HashCode.cs" />
     <Compile Include="Management\ManagementUtils.cs" />
+    <Compile Include="Network\HttpUtils.cs" />
     <Compile Include="Network\IExternalConnection.cs" />
     <Compile Include="ResourcesUtils.cs" />
     <Compile Include="LoggableAttribute.cs" />

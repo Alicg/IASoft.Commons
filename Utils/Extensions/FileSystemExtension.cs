@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Utils.Extensions
 {
@@ -404,6 +405,26 @@ namespace Utils.Extensions
         public static string CheckFileName(this string fileName, int maxFileNameLength)
         {
             return fileName.CheckFileName(false, maxFileNameLength);
+        }
+
+        public static async Task<string> CreateFileSymbolicLink(string filePath)
+        {
+            var symbolicLink = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + Path.GetExtension(filePath));
+
+            System.Diagnostics.Process mklinkProcess = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = $"/C mklink \"{symbolicLink}\" \"{filePath}\"";
+            mklinkProcess.StartInfo = startInfo;
+            mklinkProcess.Start();
+            
+            if (mklinkProcess == null)
+            {
+                throw new Exception("Failed to create a symbolic link.");
+            }
+            await Task.Run(() => mklinkProcess.WaitForExit(5000));
+            return symbolicLink;
         }
     }
 }

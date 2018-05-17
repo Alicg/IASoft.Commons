@@ -93,6 +93,13 @@ namespace Video.Utils
             return progress;
         }
 
+        public static GlobalExportProgress BuildFromRenderOptionsSingleCommand(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
+        {
+            var progress = new GlobalExportProgress(videoRenderOptions.Any(v => v.TimeWarpSettings.Any()) ? 2 : 1, progressChangedCallback);
+            progress.StartExport();
+            return progress;
+        }
+
         public static GlobalExportProgress BuildFromRenderOptionsPostEffect(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
         {
             // по одной операции для вырезания каждого эпизода.
