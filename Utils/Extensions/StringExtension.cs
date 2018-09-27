@@ -415,9 +415,9 @@ namespace Utils.Extensions
 
         #endregion
 
-        public static bool IsNotANSI(this string inputStr)
+        public static bool IsNot7BitANSI(this string inputStr)
         {
-            const int MaxAnsiCode = 255;
+            const int MaxAnsiCode = 127;
 
             return inputStr.Any(c => c > MaxAnsiCode);
         }
