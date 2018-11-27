@@ -1,0 +1,18 @@
+﻿<controls:MetroWindow x:Class="IASoft.MaterialDesignCommons.PopupWindows.DefaultNoButtonsNotificationPopupWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      xmlns:wpfCommons="clr-namespace:IASoft.WPFCommons;assembly=IASoft.WPFCommons"
+                      mc:Ignorable="d" 
+                      MinWidth="300" MinHeight="150" 
+                      Title="{Binding Title}"
+                      BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" 
+                      d:DataContext="{d:DesignInstance wpfCommons:IPageViewModel}" 
+                      Background="{DynamicResource MaterialDesignBackground}"
+                      ResizeMode="NoResize"
+                      SizeToContent="WidthAndHeight" 
+                      WindowStartupLocation="CenterScreen">
+    <ContentControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Margin="5" Content="{Binding}"/>
+</controls:MetroWindow>

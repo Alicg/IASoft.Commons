@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:popupWindows="clr-namespace:IASoft.MaterialDesignCommons.PopupWindows">
+    <DataTemplate DataType="{x:Type popupWindows:StringRequestViewModel}">
+        <popupWindows:StringRequestView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type popupWindows:ConfirmationViewModel}">
+        <popupWindows:ConfirmationView/>
+    </DataTemplate>
+</ResourceDictionary>

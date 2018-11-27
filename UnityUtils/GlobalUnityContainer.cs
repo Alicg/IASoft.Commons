@@ -1,11 +1,14 @@
-﻿namespace UnityUtils
+﻿using Unity;
+using Unity.Interception.Utilities;
+using Unity.Lifetime;
+using Unity.Registration;
+using Unity.Resolution;
+
+namespace UnityUtils
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using Microsoft.Practices.ObjectBuilder2;
-    using Microsoft.Practices.Unity;
 
     public static class GlobalUnityContainer
     {

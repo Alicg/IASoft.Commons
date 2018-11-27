@@ -1,0 +1,68 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:groupingListBox="clr-namespace:SVA.Infrastructure.Controls.GroupingListBox"
+                    xmlns:collections="clr-namespace:SVA.Infrastructure.Collections"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+                    xmlns:extensions="clr-namespace:SVA.Infrastructure.Extensions"
+                    xmlns:wpfCommons="clr-namespace:IASoft.WPFCommons;assembly=IASoft.WPFCommons">
+    <ResourceDictionary.MergedDictionaries>
+        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/SVA.Infrastructure;component/InfrastructureResources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <Style TargetType="{x:Type groupingListBox:DataGridWithGroupHeaders}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type groupingListBox:DataGridWithGroupHeaders}">
+                    <Grid>
+                        <Grid.Resources>
+                            <ResourceDictionary>
+                                <collections:GroupHeaderTypesToStringConverter x:Key="GroupHeaderTypesToStringConverter"/>
+                            </ResourceDictionary>
+                        </Grid.Resources>
+                        <DataGrid x:Name="PART_GroupedElementsGrid" ItemsSource="{TemplateBinding ItemsWithGroupHeader}" AlternationCount="2"
+                                  SelectionMode="Extended" SelectedItem="{TemplateBinding SelectedElementWithGroupHeader}" 
+                                  VirtualizingPanel.IsVirtualizingWhenGrouping="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                  VirtualizingPanel.ScrollUnit="Item"
+                                  ScrollViewer.IsDeferredScrollingEnabled="True"
+                                  EnableRowVirtualization="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="Background" 
+                                                Value="{Binding RelativeSource={RelativeSource Self}, Path=AlternationIndex, Converter={StaticResource BackgroundRowConverter}}"/>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.ContainerStyle>
+                                            <Style TargetType="{x:Type GroupItem}">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate>
+                                                            <materialDesign:Card HorizontalAlignment="Stretch" materialDesign:ShadowAssist.ShadowDepth="Depth3" Margin="0,0,0,2">
+                                                                <Expander IsExpanded="False">
+                                                                    <Expander.Header>
+                                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                                            <TextBlock Text="{Binding Name, Converter={StaticResource GroupHeaderTypesToStringConverter}}" 
+                                                                                    FontWeight="Bold" FontSize="16" 
+                                                                                   Foreground="{DynamicResource SecondaryAccentBrush}"/>
+                                                                            <TextBlock Text="-" Foreground="{DynamicResource SecondaryAccentBrush}"/>
+                                                                            <TextBlock Text="{Binding ItemCount}" Foreground="{DynamicResource SecondaryAccentBrush}"></TextBlock>
+                                                                        </StackPanel>
+                                                                    </Expander.Header>
+                                                                    <ItemsPresenter />
+                                                                </Expander>
+                                                            </materialDesign:Card>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </GroupStyle.ContainerStyle>
+                                    </GroupStyle>
+                                </DataGrid.GroupStyle>
+                        </DataGrid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

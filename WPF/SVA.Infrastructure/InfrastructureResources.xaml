@@ -1,0 +1,44 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:SVA.Infrastructure.Converters"
+                    xmlns:extensions="clr-namespace:SVA.Infrastructure.Extensions"
+                    xmlns:wpfCommons="clr-namespace:IASoft.WPFCommons;assembly=IASoft.WPFCommons"
+                    xmlns:popupWindows="clr-namespace:IASoft.MaterialDesignCommons.PopupWindows;assembly=IASoft.MaterialDesignCommons">
+    <ResourceDictionary.MergedDictionaries>
+        <wpfCommons:SharedResourceDictionary Source="Icons.xaml" />
+        <wpfCommons:SharedResourceDictionary Source="Styles/HighlightedBorder.xaml" />
+        <wpfCommons:SharedResourceDictionary Source="MetroStyleResources.xaml"/>
+        <!--<SharedResourceDictionary Source="Styles/NoToggle_MaterialDesignTheme.ComboBox.xaml"/>-->
+        <wpfCommons:SharedResourceDictionary Source="Styles/Sizable_MaterialDesignFlatToggleButton.xaml"/>
+        <wpfCommons:SharedResourceDictionary Source="Styles/Brushes.xaml"/>
+        <wpfCommons:SharedResourceDictionary Source="Styles/TextBoxStyles.xaml"/>
+        <wpfCommons:SharedResourceDictionary Source="ImagesResources.xaml"/>
+        <wpfCommons:SharedResourceDictionary Source="Controls/RoundImage.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    <converters:MillisecondsToTimeSpanConverter x:Key="MillisecondsToTimeSpanConverter"/>
+    <AlternationConverter x:Key="BackgroundRowConverter">
+        <SolidColorBrush Color="AliceBlue"/>
+        <SolidColorBrush Color="Honeydew"/>
+    </AlternationConverter>
+    <converters:IfNullThenConverter x:Key="IfNullThenConverter"/>
+    <converters:NotNullConverter x:Key="NotNullConverter"/>
+    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+    <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+    <converters:InvertBoolToVisibilityConverter x:Key="InvertBoolToVisibilityConverter"/>
+    <converters:DivideOnConverter x:Key="DivideOnConverter"/>
+    <converters:ValueToEqualsParameterConverter x:Key="ValueToEqualsParameterConverter"/>
+    <converters:GreaterThanToVisibilityConverter x:Key="GreaterThanToVisibilityConverter"/>
+    <converters:EnumerableAnyConverter x:Key="EnumerableAnyConverter"/>
+    <converters:EnumerableAnyToVisibilityInvertedConverter x:Key="EnumerableAnyToVisibilityInvertedConverter"/>
+    <Style TargetType="{x:Type ScrollViewer}">
+        <Style.Setters>
+            <Setter Property="extensions:ScrollViewerCorrector.FixScrolling" Value="True" />
+        </Style.Setters>
+    </Style>
+    <DataTemplate DataType="{x:Type popupWindows:ConfirmationViewModel}">
+        <popupWindows:ConfirmationView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type popupWindows:StringRequestViewModel}">
+        <popupWindows:StringRequestView/>
+    </DataTemplate>
+</ResourceDictionary>

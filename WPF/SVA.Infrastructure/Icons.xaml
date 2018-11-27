@@ -1,0 +1,18 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/add(1).png" x:Key="Add1Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/add(2).png" x:Key="Add2Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/add(3).png" x:Key="Add3Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/cancel.png" x:Key="CancelIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/play.png" x:Key="PlayIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/circle.png" x:Key="CircleIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/square.png" x:Key="RectangleIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/pen.png" x:Key="PenIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/width.png" x:Key="WidthIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/share.png" x:Key="ShareIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/delete(1).png" x:Key="Delete1Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/delete(2).png" x:Key="Delete2Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/delete(3).png" x:Key="Delete3Icon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/prop1.png" x:Key="PropertyIcon" />
+    <BitmapImage UriSource="/SVA.Infrastructure;component/Icons/diskette.png" x:Key="DisketteIcon" />
+</ResourceDictionary>

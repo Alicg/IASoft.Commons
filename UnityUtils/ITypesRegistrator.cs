@@ -1,7 +1,7 @@
-﻿namespace UnityUtils
-{
-    using Microsoft.Practices.Unity;
+﻿using Unity;
 
+namespace UnityUtils
+{
     public interface ITypesRegistrator
     {
         void RegisterAll(IUnityContainer container);
