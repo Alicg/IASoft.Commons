@@ -9,3 +9,7 @@ artifacts
 *.user
 /.idea
 *.vspscc
+/.vs/CommonLibs/v15/Server/sqlite3/*.lock
+/.vs/CommonLibs/v15/Server/sqlite3/*.ide
+/.vs/CommonLibs/v15/Server/sqlite3/*.ide-shm
+/.vs/CommonLibs/v15/Server/sqlite3/*.ide-wal
