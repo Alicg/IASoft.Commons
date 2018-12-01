@@ -4,6 +4,9 @@
     <DataTemplate DataType="{x:Type popupWindows:StringRequestViewModel}">
         <popupWindows:StringRequestView/>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type popupWindows:PasswordRequestViewModel}">
+        <popupWindows:PasswordRequestView/>
+    </DataTemplate>
     <DataTemplate DataType="{x:Type popupWindows:ConfirmationViewModel}">
         <popupWindows:ConfirmationView/>
     </DataTemplate>

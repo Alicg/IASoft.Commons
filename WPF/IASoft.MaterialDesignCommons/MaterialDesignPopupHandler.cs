@@ -18,6 +18,7 @@ namespace IASoft.MaterialDesignCommons
             this.eventAggregator = eventAggregator;
             eventAggregator.GetEvent<DefaultConfirmationRequestData>().ObserveOn(DispatcherScheduler.Current).Subscribe(this.ShowDefaultConfirmationPopup);
             eventAggregator.GetEvent<StringRequestData>().ObserveOn(DispatcherScheduler.Current).Subscribe(this.ShowDefaultRequestStringPopup);
+            eventAggregator.GetEvent<PasswordRequestData>().ObserveOn(DispatcherScheduler.Current).Subscribe(this.ShowDefaultRequestPasswordPopup);
             eventAggregator.GetEvent<PopupConfirmationWindowRequestData>().ObserveOn(DispatcherScheduler.Current).Subscribe(this.ShowCustomPopupWindow);
             eventAggregator.GetEvent<PopupCustomButtonsWindowRequestData>().ObserveOn(DispatcherScheduler.Current).Subscribe(this.ShowPopupWindowWithCustomButtons);
         }
@@ -36,6 +37,14 @@ namespace IASoft.MaterialDesignCommons
             var stringRequestViewModel = new StringRequestViewModel(this.eventAggregator, confirmationArgs);
             var closeDialogClosure = new OpenedClosedDialogClosure(stringRequestData.ResultCallback, 0.1);
             await DialogHost.Show(stringRequestViewModel, "RootDialog", closeDialogClosure.OpenHandle, closeDialogClosure.CloseHandle);
+        }
+
+        private async void ShowDefaultRequestPasswordPopup(PasswordRequestData passwordRequestData)
+        {
+            var confirmationArgs = new ConfirmationArgs { Title = passwordRequestData.Title };
+            var passwordRequestViewModel = new PasswordRequestViewModel(this.eventAggregator, confirmationArgs);
+            var closeDialogClosure = new OpenedClosedDialogClosure(passwordRequestData.ResultCallback, 0.1);
+            await DialogHost.Show(passwordRequestViewModel, "RootDialog", closeDialogClosure.OpenHandle, closeDialogClosure.CloseHandle);
         }
 
         private async void ShowCustomPopupWindow(PopupConfirmationWindowRequestData popupConfirmationWindowRequestData)

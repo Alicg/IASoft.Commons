@@ -30,7 +30,7 @@ namespace IASoft.WPFCommons
 
         public void AskForStringForm(string title, Action<ConfirmationArgs> resultCallback)
         {
-            this.EventAggregator.Publish(new StringRequestData(title, resultCallback));
+            this.EventAggregator.Publish(new PasswordRequestData(title, resultCallback));
         }
 
         /// <summary>

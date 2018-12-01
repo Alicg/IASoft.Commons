@@ -115,6 +115,10 @@
     <Compile Include="PopupWindows\DefaultRequestStringPopupWindow.xaml.cs">
       <DependentUpon>DefaultRequestStringPopupWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PopupWindows\PasswordRequestView.xaml.cs">
+      <DependentUpon>PasswordRequestView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PopupWindows\PasswordRequestViewModel.cs" />
     <Compile Include="PopupWindows\StringRequestView.xaml.cs">
       <DependentUpon>StringRequestView.xaml</DependentUpon>
     </Compile>
@@ -148,6 +152,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PopupWindows\DefaultRequestStringPopupWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PopupWindows\PasswordRequestView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PopupWindows\StringRequestView.xaml">

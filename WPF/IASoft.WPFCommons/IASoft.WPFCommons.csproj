@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Background\BackgroundProcessesQueue.cs" />
     <Compile Include="Background\BackgroundTasksQueue.cs" />
+    <Compile Include="Events\PasswordRequestData.cs" />
     <Compile Include="Events\StringRequestData.cs" />
     <Compile Include="Reactive\ObservableExtensions.cs" />
     <Compile Include="SharedResourceDictionary.cs" />
