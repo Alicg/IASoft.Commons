@@ -36,6 +36,7 @@
     <SkipPostSharp>True</SkipPostSharp>
     <DontImportPostSharp>True</DontImportPostSharp>
     <TargetFrameworkProfile />
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
