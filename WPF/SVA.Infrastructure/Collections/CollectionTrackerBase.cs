@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ReactiveUI.Legacy;
 
 namespace SVA.Infrastructure.Collections
 {

@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using IASoft.WPFCommons.Events;
 using Prism.Mvvm;
 using ReactiveUI;
+using ReactiveUI.Legacy;
 
 namespace IASoft.PrismCommons.PendingProcess
 {

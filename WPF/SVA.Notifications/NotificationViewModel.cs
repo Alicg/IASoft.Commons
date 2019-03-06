@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using IASoft.WPFCommons.Events;
 using Prism.Mvvm;
 using ReactiveUI;
+using ReactiveUI.Legacy;
 using Utils.Extensions;
 
 namespace SVA.Notifications

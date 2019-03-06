@@ -1,4 +1,5 @@
 ﻿using IASoft.WPFCommons.Reactive;
+using ReactiveUI.Legacy;
 
 namespace SVA.Infrastructure.Collections
 {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using ReactiveUI;
+using ReactiveUI.Legacy;
 using SVA.Infrastructure.Collections;
 
 namespace SVA.Infrastructure.Controls.GroupingListBox

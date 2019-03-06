@@ -1,4 +1,6 @@
-﻿namespace SVA.Infrastructure.Collections
+﻿using ReactiveUI.Legacy;
+
+namespace SVA.Infrastructure.Collections
 {
     using System;
     using System.Reactive.Linq;

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using ReactiveUI;
+using ReactiveUI.Legacy;
 using SVA.Infrastructure.Collections;
 
 namespace SVA.Infrastructure.Controls.GroupingListBox

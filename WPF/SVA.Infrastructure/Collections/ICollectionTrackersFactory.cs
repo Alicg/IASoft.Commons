@@ -1,3 +1,5 @@
+using ReactiveUI.Legacy;
+
 namespace SVA.Infrastructure.Collections
 {
     using System;
