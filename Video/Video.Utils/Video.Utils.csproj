@@ -69,6 +69,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VideoRenderOption.cs" />
     <Compile Include="VideoUtils.cs" />
+    <Compile Include="WebVideoInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Utils\Utils.csproj">
@@ -82,6 +83,10 @@
     <ProjectReference Include="..\FFMpegWrapper\FFMpegWrapper.csproj">
       <Project>{f406e510-2dc8-4742-80cd-551178081f56}</Project>
       <Name>FFMpegWrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NYoutubeDL\NYoutubeDL.csproj">
+      <Project>{d0c37193-a396-4073-aa26-7a13904605f4}</Project>
+      <Name>NYoutubeDL</Name>
     </ProjectReference>
     <ProjectReference Include="..\YoutubeWrapper\YoutubeWrapper.csproj">
       <Project>{F3256F5F-19EA-4C4D-91D9-1675591BEB30}</Project>

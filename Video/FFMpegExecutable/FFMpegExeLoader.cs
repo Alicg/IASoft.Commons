@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Utils.Extensions;
+﻿using Utils;
 
 namespace FFMpegExecutable
 {
@@ -7,42 +6,18 @@ namespace FFMpegExecutable
     {
         public static string UnpackFFMpegExe()
         {
-            UnpackResource("avcodec-57.dll");
-            UnpackResource("avdevice-57.dll");
-            UnpackResource("avfilter-6.dll");
-            UnpackResource("avformat-57.dll");
-            UnpackResource("avutil-55.dll");
-            UnpackResource("ffplay.exe");
-            UnpackResource("ffprobe.exe");
-            UnpackResource("postproc-54.dll");
-            UnpackResource("swresample-2.dll");
-            UnpackResource("swscale-4.dll");
-            return UnpackResource("ffmpeg.exe");
-        }
-
-        private static string UnpackResource(string resourceName)
-        {
-            const string AppDir = "";
-            var pathToResource = Path.Combine(AppDir, resourceName);
-            var resourceFromResources = typeof(FFMpegExeLoader).Assembly.GetManifestResourceStream($"FFMpegExecutable.{resourceName}");
-            if (resourceFromResources == null)
-            {
-                throw new FFMpegException($"FFMpegExecutable.{resourceName} wasn't found in resources.", string.Empty);
-            }
-            if (!File.Exists(pathToResource))
-            {
-                resourceFromResources.WriteToFile(pathToResource);
-            }
-            else
-            {
-                var existedFileSize = new FileInfo(pathToResource).Length;
-                if (resourceFromResources.Length != existedFileSize)
-                {
-                    resourceFromResources.WriteToFile(pathToResource);
-                }
-            }
-
-            return pathToResource;
+            var thisAssembly = typeof(FFMpegExeLoader).Assembly;
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "avcodec-57.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "avdevice-57.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "avfilter-6.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "avformat-57.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "avutil-55.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "ffplay.exe");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "ffprobe.exe");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "postproc-54.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "swresample-2.dll");
+            ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "swscale-4.dll");
+            return ResourcesUtils.UnpackResource(thisAssembly, "FFMpegExecutable", "ffmpeg.exe");
         }
     }
 }

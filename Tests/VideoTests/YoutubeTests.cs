@@ -37,8 +37,8 @@ namespace VideoTests
 
             var deleteResult = youtubeFacade.DeleteVideo(videoId);
 
-            // ждем 2 сек пока ютуб расчехлится, что видео удалено.
-            Thread.Sleep(2000);
+            // ждем 5 сек пока ютуб расчехлится, что видео удалено.
+            Thread.Sleep(5000);
             Assert.IsNull(youtubeFacade.GetVideoInfo(videoId));
         }
 

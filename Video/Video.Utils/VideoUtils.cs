@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
+using NYoutubeDL;
+using NYoutubeDL.Models;
 
 namespace Video.Utils
 {
@@ -63,6 +66,29 @@ namespace Video.Utils
                 renderer.AddVideoEpisodes(renderOption);
             }
             return renderer.StartRenderAsync(outputFile, outputSize, processPriorityClass, callbackAction, finishAction);
+        }
+
+        public WebVideoInfo GetWebVideoInfo(string videoUrl)
+        {
+            var youtubeDl = new YoutubeDL();
+            youtubeDl.VideoUrl = videoUrl;
+            youtubeDl.RetrieveAllInfo = true;
+            youtubeDl.PrepareDownload();
+            var videoInfo = youtubeDl.Info as VideoDownloadInfo; 
+            var randomVideoFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Vcodec != "none");
+            var randomAudioFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Acodec != "none");
+            if (randomVideoFormat == null)
+            {
+                throw new InvalidOperationException("No video stream was found by specified URL: " + videoUrl);
+            }
+
+            return new WebVideoInfo
+            {
+                OriginalUrl = videoUrl,
+                VideoStreamUrl = randomVideoFormat.Url,
+                AudioStreamUrl = randomAudioFormat?.Url,
+                ThumbnailUrl = videoInfo.Thumbnail
+            };
         }
 
         public void EnableDebugMode()

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Resources;
+using Utils.Extensions;
 
 namespace Utils
 {
@@ -62,6 +65,31 @@ namespace Utils
                 }
             }
             return isKeyExist;
+        }
+
+        public static string UnpackResource(Assembly resourceAssembly, string namespaceName, string resourceName)
+        {
+            const string AppDir = "";
+            var pathToResource = Path.Combine(AppDir, resourceName);
+            var resourceFromResources = resourceAssembly.GetManifestResourceStream($"{namespaceName}.{resourceName}");
+            if (resourceFromResources == null)
+            {
+                throw new ResourceUnpackException($"{namespaceName}.{resourceName} wasn't found in resources.");
+            }
+            if (!File.Exists(pathToResource))
+            {
+                resourceFromResources.WriteToFile(pathToResource);
+            }
+            else
+            {
+                var existedFileSize = new FileInfo(pathToResource).Length;
+                if (resourceFromResources.Length != existedFileSize)
+                {
+                    resourceFromResources.WriteToFile(pathToResource);
+                }
+            }
+
+            return pathToResource;
         }
     }
 }

@@ -7,6 +7,29 @@
     public class VideoRenderOption
     {
         public VideoRenderOption(
+            string videoStreamPath,
+            string audioStreamPath,
+            double startSecond,
+            double durationSeconds,
+            List<TextTimeRecord> overlayText,
+            List<DrawImageTimeRecord> imagesTimeTable,
+            List<TimeWarpRecord> timeWarpSettings)
+        {
+            this.VideoStreamPath = videoStreamPath;
+            this.AudioStreamPath = audioStreamPath;
+            this.OverlayTextTimeTable = overlayText;
+            this.StartSecond = startSecond;
+            this.DurationSeconds = durationSeconds;
+            this.ImagesTimeTable = imagesTimeTable;
+            this.TimeWarpSettings = timeWarpSettings;
+        }
+
+        public VideoRenderOption(string videoStreamPath, string audioStreamPath, double startSecond, double durationSeconds)
+            : this(videoStreamPath, audioStreamPath, startSecond, durationSeconds, new List<TextTimeRecord>(), new List<DrawImageTimeRecord>(), new List<TimeWarpRecord>())
+        {
+        }
+        
+        public VideoRenderOption(
             string filePath,
             double startSecond,
             double durationSeconds,
@@ -14,10 +37,10 @@
             List<DrawImageTimeRecord> imagesTimeTable,
             List<TimeWarpRecord> timeWarpSettings)
         {
+            this.FilePath = filePath;
             this.OverlayTextTimeTable = overlayText;
             this.StartSecond = startSecond;
             this.DurationSeconds = durationSeconds;
-            this.FilePath = filePath;
             this.ImagesTimeTable = imagesTimeTable;
             this.TimeWarpSettings = timeWarpSettings;
         }
@@ -38,6 +61,10 @@
         }
 
         public string FilePath { get; }
+        
+        public string VideoStreamPath{get;}
+        
+        public string AudioStreamPath { get; }
 
         public double StartSecond { get; }
 

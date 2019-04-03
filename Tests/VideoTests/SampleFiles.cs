@@ -11,7 +11,7 @@ namespace VideoTests
 
         public static readonly string InputFolder = Path.Combine(Environment.GetEnvironmentVariable("SportFolder"), "Handball videos");
 
-        public static readonly string RealInputVideoAVI = Path.Combine(InputFolder, "Гандбол. ЛЧ. 2014-2015. 6-й тур. Багга. 25.11.2014.avi");
+        public static readonly string RealInputVideoAVI = Path.Combine(InputFolder, "GBL.avi");
 
         public static readonly string RealInputVideoAVI2 = Path.Combine(InputFolder, "Гандбол. Ч.Е. Финал. Дания-Франция. Багга. 26.01.2014.avi");
 

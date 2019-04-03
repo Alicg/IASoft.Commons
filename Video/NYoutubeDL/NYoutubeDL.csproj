@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D0C37193-A396-4073-AA26-7A13904605F4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NYoutubeDL</RootNamespace>
+    <AssemblyName>NYoutubeDL</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <LangVersion>7</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Helpers\BaseOption.cs" />
+    <Compile Include="Helpers\BoolOption.cs" />
+    <Compile Include="Helpers\DateTimeOption.cs" />
+    <Compile Include="Helpers\DoubleOption.cs" />
+    <Compile Include="Helpers\EnumOption.cs" />
+    <Compile Include="Helpers\Enums.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="Helpers\FileSizeRate.cs" />
+    <Compile Include="Helpers\FileSizeRateOption.cs" />
+    <Compile Include="Helpers\IntOption.cs" />
+    <Compile Include="Helpers\NotifyPropertyChangedEx.cs" />
+    <Compile Include="Helpers\OptionAttribute.cs" />
+    <Compile Include="Helpers\OptionsJsonConverter.cs" />
+    <Compile Include="Helpers\StringOption.cs" />
+    <Compile Include="Helpers\TypeSafeEnum.cs" />
+    <Compile Include="Models\DownloadInfo.cs" />
+    <Compile Include="Models\FormatDownloadInfo.cs" />
+    <Compile Include="Models\FormatInfo.cs" />
+    <Compile Include="Models\MultiDownloadInfo.cs" />
+    <Compile Include="Models\PlaylistDownloadInfo.cs" />
+    <Compile Include="Models\PlaylistInfo.cs" />
+    <Compile Include="Models\ThumbnailDownloadInfo.cs" />
+    <Compile Include="Models\ThumbnailInfo.cs" />
+    <Compile Include="Models\VideoDownloadInfo.cs" />
+    <Compile Include="Models\VideoInfo.cs" />
+    <Compile Include="Options\AdobePass.cs" />
+    <Compile Include="Options\Authentication.cs" />
+    <Compile Include="Options\Download.cs" />
+    <Compile Include="Options\Filesystem.cs" />
+    <Compile Include="Options\General.cs" />
+    <Compile Include="Options\GeoRestriction.cs" />
+    <Compile Include="Options\Network.cs" />
+    <Compile Include="Options\Options.cs" />
+    <Compile Include="Options\OptionSection.cs" />
+    <Compile Include="Options\PostProcessing.cs" />
+    <Compile Include="Options\Subtitle.cs" />
+    <Compile Include="Options\ThumbnailImages.cs" />
+    <Compile Include="Options\VerbositySimulation.cs" />
+    <Compile Include="Options\VideoFormat.cs" />
+    <Compile Include="Options\VideoSelection.cs" />
+    <Compile Include="Options\Workarounds.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\DownloadService.cs" />
+    <Compile Include="Services\InfoService.cs" />
+    <Compile Include="Services\PreparationService.cs" />
+    <Compile Include="YoutubeDL.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="youtube-dl.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Utils\Utils.csproj">
+      <Project>{34b54e00-df35-4414-8e6f-59a24c895925}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+</Project>

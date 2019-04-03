@@ -111,16 +111,6 @@ namespace FFMpegWrapper
         {
             string outConcatVStream;
             string outConcatAStream;
-            var filePathIndexes = new List<string>();
-            foreach (var cutInfo in filesToConcat)
-            {
-                if (!filePathIndexes.Contains(cutInfo.InputPath))
-                {
-                    filePathIndexes.Add(cutInfo.InputPath);
-                }
-
-                cutInfo.InputId = filePathIndexes.IndexOf(cutInfo.InputPath);
-            }
 
             var concatFilter = this.BuildCutAndConcatFilter(filesToConcat, finalScale, out outConcatVStream, out outConcatAStream);
 
@@ -154,10 +144,24 @@ namespace FFMpegWrapper
                 Encoding.Default);
 
             var inputVideos = filesToConcat.Aggregate("",
-                (t, c) => $"{t} " +
-                          $"-ss {c.StartSecond.ToString(CultureInfo.InvariantCulture)} " +
-                          $"-t {(c.EndSecond - c.StartSecond).ToString(CultureInfo.InvariantCulture)} " +
-                          $"-i \"{c.InputPath}\"");
+                (t, c) =>
+                {
+                    if (string.IsNullOrEmpty(c.InputPath))
+                    {
+                        return $"{t} " +
+                               $"-ss {c.StartSecond.ToString(CultureInfo.InvariantCulture)} " +
+                               $"-t {(c.EndSecond - c.StartSecond).ToString(CultureInfo.InvariantCulture)} " +
+                               $"-i \"{c.VideoStreamPath}\" " + 
+                               $"-ss {c.StartSecond.ToString(CultureInfo.InvariantCulture)} " +
+                               $"-t {(c.EndSecond - c.StartSecond).ToString(CultureInfo.InvariantCulture)} " +
+                               $"-i \"{c.AudioStreamPath}\"";
+                    }
+
+                    return $"{t} " +
+                           $"-ss {c.StartSecond.ToString(CultureInfo.InvariantCulture)} " +
+                           $"-t {(c.EndSecond - c.StartSecond).ToString(CultureInfo.InvariantCulture)} " +
+                           $"-i \"{c.InputPath}\"";
+                });
             var inputImages = imagesFiles.Aggregate("", (t, c) => $"{t} -i \"{c}\"");
 
             this.parametersAccumulator.AppendFormat(" {0} {1} -filter_complex_script:v \"{2}\" -map {3} -map {4}",
@@ -401,42 +405,74 @@ namespace FFMpegWrapper
             var cutfilter = new StringBuilder();
             var concatFilterBuilder = new StringBuilder();
             int cutIndexer = 0;
-            foreach (var cutInfo in cutInfos)
+            foreach (var unused in cutInfos)
             {
-                if (finalScale.IsEmpty)
+                if (unused.InputPath != null)
                 {
-                    cutfilter.Append(
-                        $"[{cutIndexer}:v]" +
-                        //$"trim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
-                        //$"setpts=PTS-STARTPTS," +
-                        $"setdar=16/9" +
-                        $"[v{cutIndexer}];");
+                    cutIndexer = this.PrepareConcatFilterForSingleVideo(cutfilter, concatFilterBuilder, cutIndexer, finalScale);
                 }
                 else
                 {
-                    cutfilter.Append(
-                        $"[{cutIndexer}:v]" +
-                        //$"trim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
-                        //$"setpts=PTS-STARTPTS," +
-                        $"scale={finalScale.Width}x{finalScale.Height}," +
-                        $"setdar=16/9" +
-                        $"[v{cutIndexer}];");
+                    cutIndexer = this.PrepareConcatFilterForDualStreamsVideo(cutfilter, concatFilterBuilder, cutIndexer, finalScale);
                 }
-//                cutfilter.Append(
-//                    $"[{cutInfo.InputId}:a]" +
-//                    $"atrim={cutInfo.StartSecond}:{cutInfo.EndSecond}," +
-//                    $"asetpts=PTS-STARTPTS" +
-//                    $"[a{cutIndexer}];");
-
-                //concatFilterBuilder.Append($"[v{cutIndexer}][a{cutIndexer}]");
-                concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer}:a]");
-                cutIndexer++;
             }
 
             outVideoStream = "[vv]";
             outAudioStream = "[a]";
             cutfilter.Append(concatFilterBuilder).Append($"concat=n={cutInfos.Count}:v=1:a=1{outVideoStream}{outAudioStream}");
             return cutfilter.ToString();
+        }
+
+        /// <summary>
+        /// Если видео и аудио поток находятся в одном источнике. Например mp4 файл на диске.
+        /// </summary>
+        private int PrepareConcatFilterForSingleVideo(StringBuilder cutfilter, StringBuilder concatFilterBuilder, int cutIndexer, Size finalScale)
+        {
+            if (finalScale.IsEmpty)
+            {
+                cutfilter.Append(
+                    $"[{cutIndexer}:0]" +
+                    $"setdar=16/9" +
+                    $"[v{cutIndexer}];");
+            }
+            else
+            {
+                cutfilter.Append(
+                    $"[{cutIndexer}:0]" +
+                    $"scale={finalScale.Width}x{finalScale.Height}," +
+                    $"setdar=16/9" +
+                    $"[v{cutIndexer}];");
+            }
+
+            concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer}:1]");
+
+            return cutIndexer + 1;
+        }
+
+        /// <summary>
+        /// Если видео и аудио поток находятся в разных источниках. Например Youtube.
+        /// </summary>
+        private int PrepareConcatFilterForDualStreamsVideo(StringBuilder cutfilter, StringBuilder concatFilterBuilder, int cutIndexer, Size finalScale)
+        {
+            if (finalScale.IsEmpty)
+            {
+                cutfilter.Append(
+                    $"[{cutIndexer}:0]" +
+                    $"setdar=16/9" +
+                    $"[v{cutIndexer}];");
+            }
+            else
+            {
+                cutfilter.Append(
+                    $"[{cutIndexer}:0]" +
+                    $"scale={finalScale.Width}x{finalScale.Height}," +
+                    $"setdar=16/9" +
+                    $"[v{cutIndexer}];");
+            }
+
+            concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer + 1}:0]");
+
+            return cutIndexer + 2;
         }
 
         private string BuildConcatFilter(int count, Size finalScale, out string outVideoStream, out string outAudioStream)

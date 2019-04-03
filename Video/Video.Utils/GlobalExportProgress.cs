@@ -99,39 +99,5 @@ namespace Video.Utils
             progress.StartExport();
             return progress;
         }
-
-        public static GlobalExportProgress BuildFromRenderOptionsPostEffect(ICollection<VideoRenderOption> videoRenderOptions, Action<string, double, double, double> progressChangedCallback)
-        {
-            // по одной операции для вырезания каждого эпизода.
-            var totalOperationsExpected = videoRenderOptions.Count;
-
-            var differentSourcesCount = videoRenderOptions.Select(v => v.FilePath).GroupBy(v => v).Count(v => v.Count() > 1);
-            // склеить эпизоды в группы одного формата (если таких эпизодов несколько).
-            totalOperationsExpected += differentSourcesCount;
-
-            var totalOperationsForConcat = 0;
-            if (differentSourcesCount > 1)
-            {
-                // один раз склеить все группы разных форматов.
-                totalOperationsForConcat = 1;
-            }
-
-            var totalOverlayTextRecords = videoRenderOptions
-                .SelectMany(v => v.OverlayTextTimeTable ?? new List<TextTimeRecord>()).Count();
-            
-            var totalOverlayImageRecords = videoRenderOptions
-                .SelectMany(v => v.ImagesTimeTable ?? new List<DrawImageTimeRecord>()).Count();
-            
-            var totalOperationsForFilter = Math.Max(totalOperationsForConcat, Math.Max(totalOverlayTextRecords, totalOverlayImageRecords)) * 2;
-
-            totalOperationsExpected += totalOperationsForFilter;
-
-            // по одной операции для каждого эффекта времени.
-            totalOperationsExpected += videoRenderOptions.Count(v => v.TimeWarpSettings != null && v.TimeWarpSettings.Any());
-
-            var progress = new GlobalExportProgress(totalOperationsExpected, progressChangedCallback);
-            progress.StartExport();
-            return progress;
-        }
     }
 }

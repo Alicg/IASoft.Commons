@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using Utils.Extensions;
 
 namespace Video.Utils
 {
+    [Obsolete("Не используется более.")]
     public class CutOptionsBuilder
     {
         // mkv файлы потом без проблем склеиваются в конкате. mp4, например, склеивается с артефактами.

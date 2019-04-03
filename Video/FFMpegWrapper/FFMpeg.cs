@@ -285,7 +285,7 @@ namespace FFMpegWrapper
 
         public FFMpegVideoInfo GetVideoInfo(string inputFile)
         {
-            if (string.IsNullOrEmpty(inputFile) || !File.Exists(inputFile))
+            if (string.IsNullOrEmpty(inputFile) || (!inputFile.Contains("http://") && !inputFile.Contains("https://") && !File.Exists(inputFile)))
             {
                 throw new FileNotFoundException($"Can't get video info. File path is null or file doesn't exist. Path: {inputFile}");
             }

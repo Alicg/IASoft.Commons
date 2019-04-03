@@ -132,6 +132,7 @@
     <Compile Include="ContextBound\InterceptAttribute.cs" />
     <Compile Include="ContextBound\InterceptProperty.cs" />
     <Compile Include="ContextBound\InterceptSink.cs" />
+    <Compile Include="ResourceUnpackException.cs" />
     <Compile Include="StringUtils.cs" />
     <Compile Include="XmlSerialization.cs" />
     <Compile Include="WinApi.Constants.cs">

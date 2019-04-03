@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IASoft.PrismCommons", "WPF\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IASoft.MaterialDesignCommons", "WPF\IASoft.MaterialDesignCommons\IASoft.MaterialDesignCommons.csproj", "{1CE56874-B82A-4958-963E-DF424DC88701}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NYoutubeDL", "Video\NYoutubeDL\NYoutubeDL.csproj", "{D0C37193-A396-4073-AA26-7A13904605F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,10 @@ Global
 		{1CE56874-B82A-4958-963E-DF424DC88701}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CE56874-B82A-4958-963E-DF424DC88701}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CE56874-B82A-4958-963E-DF424DC88701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C37193-A396-4073-AA26-7A13904605F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C37193-A396-4073-AA26-7A13904605F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C37193-A396-4073-AA26-7A13904605F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C37193-A396-4073-AA26-7A13904605F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -148,5 +154,6 @@ Global
 		{B5A75B4F-A680-480B-84DE-CC27F418DB59} = {528B9AC5-6E8D-4889-A0E3-E537FDC87B70}
 		{FE8DF3CE-ED49-44D5-8FA7-836A30133A67} = {528B9AC5-6E8D-4889-A0E3-E537FDC87B70}
 		{1CE56874-B82A-4958-963E-DF424DC88701} = {528B9AC5-6E8D-4889-A0E3-E537FDC87B70}
+		{D0C37193-A396-4073-AA26-7A13904605F4} = {757F4961-EFCF-4484-917B-BAFEF3092F0F}
 	EndGlobalSection
 EndGlobal

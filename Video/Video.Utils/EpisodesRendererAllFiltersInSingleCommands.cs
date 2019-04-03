@@ -57,8 +57,17 @@ namespace Video.Utils
                 var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable());
                 ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
-                var cutInfos = this.videoRenderOptions.Select(v => new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds)).ToList();
-                
+                var cutInfos = this.videoRenderOptions.Select(
+                    v =>
+                    {
+                        if (string.IsNullOrEmpty(v.FilePath))
+                        {
+                            return new FFMpegCutInfo(v.VideoStreamPath, v.AudioStreamPath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                        }
+
+                        return new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                    }).ToList();
+
                 this.CutAndConcatAndRenderTextAndImageAndTimeWarps(cutInfos, ffMpeg, temporaryFilesStorage);
             }
         }
