@@ -49,17 +49,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="avcodec-57.dll" />
-    <EmbeddedResource Include="avdevice-57.dll" />
-    <EmbeddedResource Include="avfilter-6.dll" />
-    <EmbeddedResource Include="avformat-57.dll" />
-    <EmbeddedResource Include="avutil-55.dll" />
     <EmbeddedResource Include="ffmpeg.exe" />
     <EmbeddedResource Include="ffplay.exe" />
     <EmbeddedResource Include="ffprobe.exe" />
-    <EmbeddedResource Include="postproc-54.dll" />
-    <EmbeddedResource Include="swresample-2.dll" />
-    <EmbeddedResource Include="swscale-4.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="avcodec-58.dll" />
+    <EmbeddedResource Include="avdevice-58.dll" />
+    <EmbeddedResource Include="avfilter-7.dll" />
+    <EmbeddedResource Include="avformat-58.dll" />
+    <EmbeddedResource Include="avutil-56.dll" />
+    <EmbeddedResource Include="postproc-55.dll" />
+    <EmbeddedResource Include="swresample-3.dll" />
+    <EmbeddedResource Include="swscale-5.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
