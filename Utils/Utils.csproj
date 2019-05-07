@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbortException.cs" />
+    <Compile Include="AsyncUtils.cs" />
     <Compile Include="ByteArrayLibrary.cs" />
     <Compile Include="Certificates.cs" />
     <Compile Include="Comparers\ComparerEx.cs" />
