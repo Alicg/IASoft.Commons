@@ -23,11 +23,12 @@ namespace Video.Utils
     public class EpisodesRendererAllFiltersInSingleCommands : IEpisodesRenderer
     {
         private readonly CancellationToken cancellationToken;
-        private readonly IList<VideoRenderOption> videoRenderOptions;
         private readonly string outputFile;
-        private readonly Size outputSize;
         private readonly ProcessPriorityClass rendererProcessPriorityClass;
         private readonly IGlobalExportProgress globalExportProgress;
+        
+        protected readonly IList<VideoRenderOption> VideoRenderOptions;
+        protected readonly Size OutputSize;
 
         public EpisodesRendererAllFiltersInSingleCommands(
             IList<VideoRenderOption> videoRenderOptions,
@@ -38,9 +39,9 @@ namespace Video.Utils
             CancellationToken cancellationToken)
         {
             this.cancellationToken = cancellationToken;
-            this.videoRenderOptions = videoRenderOptions;
+            this.VideoRenderOptions = videoRenderOptions;
             this.outputFile = outputFile;
-            this.outputSize = outputSize;
+            this.OutputSize = outputSize;
             this.rendererProcessPriorityClass = rendererProcessPriorityClass;
             this.globalExportProgress = globalExportProgress;
         }
@@ -57,7 +58,7 @@ namespace Video.Utils
                 var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable());
                 ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
-                var cutInfos = this.videoRenderOptions.Select(
+                var cutInfos = this.VideoRenderOptions.Select(
                     v =>
                     {
                         if (string.IsNullOrEmpty(v.FilePath))
@@ -72,13 +73,13 @@ namespace Video.Utils
             }
         }
 
-        private void CutAndConcatAndRenderTextAndImageAndTimeWarps(List<FFMpegCutInfo> cutInfos, FFMpeg ffMpeg, TemporaryFilesStorage temporaryFilesStorage)
+        protected virtual void CutAndConcatAndRenderTextAndImageAndTimeWarps(List<FFMpegCutInfo> cutInfos, FFMpeg ffMpeg, TemporaryFilesStorage temporaryFilesStorage)
         {
             var textTimeTableForConcatenatedEpisodeGroups = new List<TextTimeRecord>();
             var imagesTimeTableForConcatenatedEpisodeGroups = new List<DrawImageTimeRecord>();
             var timeWarpForConcatenatedEpisodeGroups = new List<TimeWarpRecord>();
             var currentPosition = 0.0;
-            foreach (var videoRenderOption in this.videoRenderOptions)
+            foreach (var videoRenderOption in this.VideoRenderOptions)
             {
                 if (videoRenderOption.OverlayTextTimeTable != null && videoRenderOption.OverlayTextTimeTable.Any())
                 {
@@ -113,7 +114,7 @@ namespace Video.Utils
                 cutInfos,
                 imagesTimeTableForConcatenatedEpisodeGroups,
                 textTimeTableForConcatenatedEpisodeGroups,
-                this.outputSize,
+                this.OutputSize,
                 pathForConcatenatedEpisodes,
                 this.globalExportProgress);
 

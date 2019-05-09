@@ -68,7 +68,7 @@ namespace Video.Utils
                         this.cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    var episodesRenderer = new EpisodesRendererAllFiltersInSingleCommands(this.videoRenderOptions,
+                    var episodesRenderer = new EpisodesRendererAllFiltersInSingleCommandsTextAsImage(this.videoRenderOptions,
                         outputFile,
                         outputSize,
                         processPriorityClass,

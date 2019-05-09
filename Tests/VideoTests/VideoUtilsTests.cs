@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
 using NUnit.Framework;
+using Utils;
 using Utils.Extensions;
 using Video.Utils;
 
@@ -59,6 +62,13 @@ namespace VideoTests
             var videoInfo = new VideoUtils().GetVideoInfo(symbolicLink);
             Assert.AreEqual(360, videoInfo.Height);
             Assert.AreEqual(640, videoInfo.Width);
+        }
+
+        [Test]
+        public void DrawTextToImage_Test()
+        {
+            var img = StringUtils.DrawTextOnImage("Игра 1. Незаметные игроки выигрывают угадайки.", Color.White, Color.Red, new Font("arial", 37), 600);
+            img.Save("tmp.bmp", ImageFormat.Bmp);
         }
     }
 }

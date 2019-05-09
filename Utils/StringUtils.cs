@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 using Utils.Extensions;
 
@@ -280,6 +282,42 @@ namespace Utils
                 }
             }
             return queryText;
+        }
+
+        public static Bitmap DrawTextOnImage(string text, Color backColor, Color textColor, Font font, int width)
+        {
+            //first, create a dummy bitmap just to get a graphics object
+            var img = new Bitmap(1, 1);
+            var drawing = Graphics.FromImage(img);
+
+            var sf = new StringFormat {Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center};
+            
+            //measure the string to see how big the image needs to be
+            var textSize = drawing.MeasureString(text, font, width, sf);
+
+            //free up the dummy image and old graphics object
+            img.Dispose();
+            drawing.Dispose();
+
+            //create a new image of the right size
+            img = new Bitmap((int)Math.Ceiling(textSize.Width), (int)Math.Ceiling(textSize.Height));
+
+            drawing = Graphics.FromImage(img);
+
+            //paint the background
+            drawing.Clear(backColor);
+
+            //create a brush for the text
+            Brush textBrush = new SolidBrush(textColor);
+            
+            drawing.DrawString(text, font, textBrush, new RectangleF(new PointF(0, 0), textSize), sf);
+
+            drawing.Save();
+
+            textBrush.Dispose();
+            drawing.Dispose();
+
+            return img;
         }
     }
 }
