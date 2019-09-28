@@ -10,6 +10,9 @@ namespace Video.Utils
     public interface IVideoUtils
     {
         FFMpegVideoInfo GetVideoInfo(string videoFilePath);
+        
+        WebVideoInfo GetWebVideoInfo(string videoUrl);
+        Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl);
         byte[] GetFrameFromVideoAsByte(string videoFile, double position);
         byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize);
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position);
@@ -26,5 +29,7 @@ namespace Video.Utils
 
         void EnableDebugMode();
         void DisableDebugMode();
+
+        Task DownloadYoutubeVideo(string videoUrl, string localPath, Action<string, string, string> progressCallback);
     }
 }

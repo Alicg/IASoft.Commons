@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FFMpegWrapper;
 using NYoutubeDL;
+using NYoutubeDL.Helpers;
 using NYoutubeDL.Models;
 
 namespace Video.Utils
@@ -70,11 +72,17 @@ namespace Video.Utils
 
         public WebVideoInfo GetWebVideoInfo(string videoUrl)
         {
+            var getWebVideoInfoTask = this.GetWebVideoInfoAsync(videoUrl);
+            getWebVideoInfoTask.Wait();
+            return getWebVideoInfoTask.Result;
+        }
+
+        public async Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl)
+        {
             var youtubeDl = new YoutubeDL();
             youtubeDl.VideoUrl = videoUrl;
             youtubeDl.RetrieveAllInfo = true;
-            youtubeDl.PrepareDownload();
-            var videoInfo = youtubeDl.Info as VideoDownloadInfo; 
+            var videoInfo = await youtubeDl.GetDownloadInfoAsync() as VideoDownloadInfo;// PrepareDownloadAsync();
             var randomVideoFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Vcodec != "none");
             var randomAudioFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Acodec != "none");
             if (randomVideoFormat == null)
@@ -87,7 +95,9 @@ namespace Video.Utils
                 OriginalUrl = videoUrl,
                 VideoStreamUrl = randomVideoFormat.Url,
                 AudioStreamUrl = randomAudioFormat?.Url,
-                ThumbnailUrl = videoInfo.Thumbnail
+                ThumbnailUrl = videoInfo.Thumbnail,
+                VideoTitle = videoInfo.Title,
+                VideoDescription = videoInfo.Description,
             };
         }
 
@@ -99,6 +109,32 @@ namespace Video.Utils
         public void DisableDebugMode()
         {
             FFMpeg.DebugModeEnabled = false;
+        }
+
+        public async Task DownloadYoutubeVideo(string videoUrl, string localPath, Action<string, string, string> progressCallback)
+        {
+            var youtubeDl = new YoutubeDL();
+            youtubeDl.VideoUrl = videoUrl;
+            youtubeDl.Options.FilesystemOptions.Output = localPath;
+            youtubeDl.Options.PostProcessingOptions.ExtractAudio = false;
+            youtubeDl.Options.DownloadOptions.FragmentRetries = -1;
+            youtubeDl.Options.DownloadOptions.Retries = -1;
+            youtubeDl.Options.VideoFormatOptions.Format = Enums.VideoFormat.best;
+            youtubeDl.Options.PostProcessingOptions.AudioFormat = Enums.AudioFormat.best;
+            youtubeDl.Options.PostProcessingOptions.AudioQuality = "0";
+
+            youtubeDl.StandardOutputEvent += (sender, s) =>
+            {
+                var pattern = @"(?<progress>[^ ]{1,10}%).*?at.*?(?<rate>\d[^ ]{1,10}MiB\/s).*?(?<ETA>ETA [^ ]*)";
+                var match = Regex.Match(s, pattern);
+                if (match.Success)
+                {
+                    progressCallback(match.Groups["progress"].Value, match.Groups["rate"].Value, match.Groups["ETA"].Value);
+                }
+            };
+
+            
+            await youtubeDl.DownloadAsync();
         }
     }
 }

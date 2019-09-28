@@ -155,6 +155,7 @@ namespace NYoutubeDL
         public async Task DownloadAsync()
         {
             await this.semaphore.WaitAsync();
+            await this.UpdateExecutable();
             await DownloadService.DownloadAsync(this, downloadTokenSource.Token);
             this.semaphore.Release();
         }
@@ -167,6 +168,7 @@ namespace NYoutubeDL
         public async Task DownloadAsync(string videoUrl)
         {
             await this.semaphore.WaitAsync();
+            await this.UpdateExecutable();
             await DownloadService.DownloadAsync(this, videoUrl, downloadTokenSource.Token);
             this.semaphore.Release();
         }
@@ -178,6 +180,7 @@ namespace NYoutubeDL
         public void Download()
         {
             this.semaphore.Wait();
+            this.UpdateExecutable().Wait();
             DownloadService.Download(this, downloadTokenSource.Token);
             this.semaphore.Release();
         }
@@ -190,6 +193,7 @@ namespace NYoutubeDL
         public void Download(string videoUrl)
         {
             this.semaphore.Wait();
+            this.UpdateExecutable().Wait();
             DownloadService.Download(this, videoUrl, downloadTokenSource.Token);
             this.semaphore.Release();
         }
@@ -203,6 +207,7 @@ namespace NYoutubeDL
         public async Task<DownloadInfo> GetDownloadInfoAsync()
         {
             await this.semaphore.WaitAsync();
+            await this.UpdateExecutable();
             DownloadInfo info = await InfoService.GetDownloadInfoAsync(this, downloadTokenSource.Token);
             this.semaphore.Release();
             return info;
@@ -220,6 +225,7 @@ namespace NYoutubeDL
         public async Task<DownloadInfo> GetDownloadInfoAsync(string url)
         {
             await this.semaphore.WaitAsync();
+            await this.UpdateExecutable();
             DownloadInfo info = await InfoService.GetDownloadInfoAsync(this, url, downloadTokenSource.Token);
             this.semaphore.Release();
             return info;
@@ -234,6 +240,7 @@ namespace NYoutubeDL
         public DownloadInfo GetDownloadInfo()
         {
             this.semaphore.Wait();
+            this.UpdateExecutable().Wait();
             DownloadInfo info = InfoService.GetDownloadInfo(this, downloadTokenSource.Token);
             this.semaphore.Release();
             return info;
@@ -251,6 +258,7 @@ namespace NYoutubeDL
         public DownloadInfo GetDownloadInfo(string url)
         {
             this.semaphore.Wait();
+            this.UpdateExecutable().Wait();
             DownloadInfo info = InfoService.GetDownloadInfo(this, url, downloadTokenSource.Token);
             this.semaphore.Release();
             return info;
@@ -265,6 +273,7 @@ namespace NYoutubeDL
         public async Task<string> PrepareDownloadAsync()
         {
             await this.semaphore.WaitAsync();
+            await this.UpdateExecutable();
             string args = await PreparationService.PrepareDownloadAsync(this, downloadTokenSource.Token);
             this.semaphore.Release();
             return args;
@@ -426,6 +435,21 @@ namespace NYoutubeDL
         {
             add => this.stdOutputEvent += value;
             remove => this.stdOutputEvent -= value;
+        }
+
+        public async Task UpdateExecutable()
+        {
+            var updateProcess = Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = YoutubeDlPath, 
+                    Arguments = "-U",
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                });
+            await updateProcess.WaitForExitAsync();
         }
     }
 }
