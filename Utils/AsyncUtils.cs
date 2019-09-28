@@ -12,5 +12,13 @@ namespace Utils
                 await Task.Delay(intervalBetweenChecks);
             }
         }
+        
+        public static async Task WaitUntil(Func<bool> predicate, TimeSpan intervalBetweenChecks)
+        {
+            while (!predicate())
+            {
+                await Task.Delay(intervalBetweenChecks);
+            }
+        }
     }
 }

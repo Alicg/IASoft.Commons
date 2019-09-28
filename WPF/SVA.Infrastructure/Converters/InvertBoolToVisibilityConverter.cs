@@ -1,4 +1,6 @@
-﻿namespace SVA.Infrastructure.Converters
+﻿using System.Windows;
+
+namespace SVA.Infrastructure.Converters
 {
     using System;
     using System.Globalization;
@@ -11,9 +13,9 @@
             var boolValue = value as bool?;
             if (boolValue.HasValue && boolValue.Value)
             {
-                return false;
+                return Visibility.Collapsed;
             }
-            return true;
+            return Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
