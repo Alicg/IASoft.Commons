@@ -15,3 +15,8 @@ artifacts
 /.vs/CommonLibs/v15/Server/sqlite3/*.ide-wal
 /test.txt
 /test2.txt
+/Video/FFMpegExecutable/ffmpeg-4.1.1-win32-shared/doc/*.html
+/Video/FFMpegExecutable/ffmpeg-4.1.1-win32-shared/doc/*.css
+/Video/FFMpegExecutable/ffmpeg-4.1.1-win32-shared/*.txt
+/Video/FFMpegExecutable/ffmpeg-4.1.1-win32-shared/presets/*.ffpreset
+/Video/FFMpegExecutable/ffmpeg-4.1.1-win32-shared/presets/ffprobe.xsd
