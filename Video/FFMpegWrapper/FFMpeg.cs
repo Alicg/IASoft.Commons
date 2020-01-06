@@ -12,7 +12,7 @@ using Utils.Extensions;
 
 namespace FFMpegWrapper
 {
-    public class FFMpeg
+    public class FFMpeg : IDisposable
     {
         private readonly TemporaryFilesStorage temporaryFilesStorage;
         private readonly ProcessPriorityClass ffmpegProcessPriorityClass;
@@ -335,6 +335,11 @@ namespace FFMpegWrapper
         private static FFMpegVideoInfo ParseVideoInfo(string str)
         {
             return new VideoInfoParser().ParseFFMpegInfo(str);
+        }
+
+        public void Dispose()
+        {
+            this.temporaryFilesStorage?.Dispose();
         }
     }
 }

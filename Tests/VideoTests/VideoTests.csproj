@@ -68,6 +68,7 @@
     <Compile Include="FFMpegTests.cs" />
     <Compile Include="FFMpegVideoRendererTests.cs" />
     <Compile Include="FFMpegYoutubeTests.cs" />
+    <Compile Include="NYoutubeDLTests.cs" />
     <Compile Include="SampleFiles.cs" />
     <Compile Include="TimeWarpTests.cs" />
     <Compile Include="VideoInfoParserTests.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -16,38 +17,44 @@ namespace Video.Utils
     {
         public FFMpegVideoInfo GetVideoInfo(string videoFilePath)
         {
-            var mhandler = new FFMpeg(new TemporaryFilesStorage());
-            return mhandler.GetVideoInfo(videoFilePath);
-        }
-
-        public byte[] GetFrameFromVideoAsByte(string videoFile, double position)
-        {
-            return this.GetFrameFromVideoAsByte(videoFile, position, FFMpegImageSize.Qqvga);
-        }
-
-        public byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize)
-        {
-            using (var tempFileStorage = new TemporaryFilesStorage())
+            using (var mhandler = new FFMpeg(new TemporaryFilesStorage()))
             {
-                var mhandler = new FFMpeg(tempFileStorage);
-                return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+                return mhandler.GetVideoInfo(videoFilePath);
             }
         }
 
-        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position)
+        public byte[] GetFrameFromVideoAsByte(string videoFile, double positionMs)
         {
-            return await this.GetFrameFromVideoAsByteAsync(videoFile, position, FFMpegImageSize.Qqvga);
+            return this.GetFrameFromVideoAsByte(videoFile, positionMs, FFMpegImageSize.Qqvga);
         }
 
-        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize)
+        public byte[] GetFrameFromVideoAsByte(string videoFile, double positionMs, FFMpegImageSize imageSize)
         {
-            return await Task.Factory.StartNew(
-                () =>
+            using (var tempFileStorage = new TemporaryFilesStorage())
+            {
+                using (var mhandler = new FFMpeg(tempFileStorage))
+                {
+                    return mhandler.GetBitmapFromVideoAsByte(videoFile, positionMs, imageSize);
+                }
+            }
+        }
+
+        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double positionMs)
+        {
+            return await this.GetFrameFromVideoAsByteAsync(videoFile, positionMs, FFMpegImageSize.Qqvga);
+        }
+
+        public async Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double positionMs, FFMpegImageSize imageSize)
+        {
+            return await await Task.Factory.StartNew(
+                async () =>
                 {
                     using (var tempFileStorage = new TemporaryFilesStorage())
                     {
-                        var mhandler = new FFMpeg(tempFileStorage);
-                        return mhandler.GetBitmapFromVideoAsByte(videoFile, position, imageSize);
+                        using (var mhandler = new FFMpeg(tempFileStorage))
+                        {
+                            return mhandler.GetBitmapFromVideoAsByte(videoFile, positionMs, imageSize);
+                        }
                     }
                 },
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -70,22 +77,38 @@ namespace Video.Utils
             return renderer.StartRenderAsync(outputFile, outputSize, processPriorityClass, callbackAction, finishAction);
         }
 
-        public WebVideoInfo GetWebVideoInfo(string videoUrl)
+        [Description("Использовать только для тестов. Приводит в дедлоку на UI.")]
+        public WebVideoInfo GetWebVideoInfo(string videoUrl, bool singleBest = false)
         {
-            var getWebVideoInfoTask = this.GetWebVideoInfoAsync(videoUrl);
+            var getWebVideoInfoTask = this.GetWebVideoInfoAsync(videoUrl, singleBest);
             getWebVideoInfoTask.Wait();
             return getWebVideoInfoTask.Result;
         }
 
-        public async Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl)
+        public async Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl, bool singleBest = false, bool videoBest = false)
         {
             var youtubeDl = new YoutubeDL();
             youtubeDl.VideoUrl = videoUrl;
             youtubeDl.RetrieveAllInfo = true;
             var videoInfo = await youtubeDl.GetDownloadInfoAsync() as VideoDownloadInfo;// PrepareDownloadAsync();
-            var randomVideoFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Vcodec != "none");
-            var randomAudioFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Acodec != "none");
-            if (randomVideoFormat == null)
+            FormatDownloadInfo videoFormat;
+            FormatDownloadInfo audioFormat = null;
+            if (singleBest)
+            {
+                videoFormat = videoInfo?.Formats.Where(v => v.Vcodec != "none" && v.Acodec != "none").OrderBy(v => v.Height).ThenBy(v => v.Width)
+                    .LastOrDefault();
+            }
+            else if (videoBest)
+            {
+                videoFormat = videoInfo?.Formats.Where(v => v.Vcodec != "none").OrderBy(v => v.Height).ThenBy(v => v.Width)
+                    .LastOrDefault();
+            }
+            else
+            {
+                videoFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Vcodec != "none");
+                audioFormat = videoInfo?.RequestedFormats.FirstOrDefault(v => v.Acodec != "none");
+            }
+            if (videoFormat == null)
             {
                 throw new InvalidOperationException("No video stream was found by specified URL: " + videoUrl);
             }
@@ -93,8 +116,8 @@ namespace Video.Utils
             return new WebVideoInfo
             {
                 OriginalUrl = videoUrl,
-                VideoStreamUrl = randomVideoFormat.Url,
-                AudioStreamUrl = randomAudioFormat?.Url,
+                VideoStreamUrl = videoFormat.Url,
+                AudioStreamUrl = audioFormat?.Url,
                 ThumbnailUrl = videoInfo.Thumbnail,
                 VideoTitle = videoInfo.Title,
                 VideoDescription = videoInfo.Description,
@@ -135,6 +158,11 @@ namespace Video.Utils
 
             
             await youtubeDl.DownloadAsync();
+        }
+
+        public static bool IsInternetVideo(string videoSource)
+        {
+            return videoSource.Contains("https://") || videoSource.Contains("http://");
         }
     }
 }

@@ -46,38 +46,40 @@ namespace Video.Utils
                 // ReSharper disable once ImpureMethodCallOnReadonlyValueField
                 // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
                 this.cancellationToken.Register(() => subject.OnNext(0));
-                var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable());
-                ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
+                using (var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable()))
+                {
+                    ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
-                var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage, false);
-                
-                Parallel.ForEach(
-                    cutOptionsBuilder.CutOptions,
-                    cutOptions =>
+                    var cutOptionsBuilder = new CutOptionsBuilder(this.videoRenderOptions, this.outputSize, this.globalExportProgress, temporaryFilesStorage, false);
+
+                    Parallel.ForEach(
+                        cutOptionsBuilder.CutOptions,
+                        cutOptions =>
+                        {
+                            if (this.cancellationToken.IsCancellationRequested)
+                            {
+                                this.cancellationToken.ThrowIfCancellationRequested();
+                            }
+
+                            // ReSharper disable once AccessToDisposedClosure
+                            // выполнение замыкания всегда будет происходить до Dispose.
+                            this.CutAndDrawTextAndDrawImageAndApplyTimeWarp(ffMpeg, cutOptions, temporaryFilesStorage);
+                        });
+                    if (cutOptionsBuilder.FilesToConcat.Count == 1)
+                    {
+                        File.Move(cutOptionsBuilder.FilesToConcat.Single(), this.outputFile);
+                    }
+                    else
                     {
                         if (this.cancellationToken.IsCancellationRequested)
                         {
                             this.cancellationToken.ThrowIfCancellationRequested();
                         }
 
-                        // ReSharper disable once AccessToDisposedClosure
-                        // выполнение замыкания всегда будет происходить до Dispose.
-                        this.CutAndDrawTextAndDrawImageAndApplyTimeWarp(ffMpeg, cutOptions, temporaryFilesStorage);
-                    });
-                if (cutOptionsBuilder.FilesToConcat.Count == 1)
-                {
-                    File.Move(cutOptionsBuilder.FilesToConcat.Single(), this.outputFile);
-                }
-                else
-                {
-                    if (this.cancellationToken.IsCancellationRequested)
-                    {
-                        this.cancellationToken.ThrowIfCancellationRequested();
+                        var tempFileForConcat = temporaryFilesStorage.GetIntermediateFile(cutOptionsBuilder.OutputExtension);
+                        ffMpeg.Concat(tempFileForConcat, this.outputSize, "copy", "copy", this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
+                        ffMpeg.Convert(tempFileForConcat, this.outputFile, this.globalExportProgress);
                     }
-
-                    var tempFileForConcat = temporaryFilesStorage.GetIntermediateFile(cutOptionsBuilder.OutputExtension);
-                    ffMpeg.Concat(tempFileForConcat, this.outputSize, "copy", "copy", this.globalExportProgress, cutOptionsBuilder.FilesToConcat.ToArray());
-                    ffMpeg.Convert(tempFileForConcat, this.outputFile, this.globalExportProgress);
                 }
             }
         }

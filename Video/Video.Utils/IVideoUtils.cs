@@ -11,11 +11,11 @@ namespace Video.Utils
     {
         FFMpegVideoInfo GetVideoInfo(string videoFilePath);
         
-        WebVideoInfo GetWebVideoInfo(string videoUrl);
-        Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl);
+        WebVideoInfo GetWebVideoInfo(string videoUrl, bool singleBest = false);
+        Task<WebVideoInfo> GetWebVideoInfoAsync(string videoUrl, bool singleBest = false, bool videoBest = false);
         byte[] GetFrameFromVideoAsByte(string videoFile, double position);
         byte[] GetFrameFromVideoAsByte(string videoFile, double position, FFMpegImageSize imageSize);
-        Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position);
+        Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double positionMs);
         Task<byte[]> GetFrameFromVideoAsByteAsync(string videoFile, double position, FFMpegImageSize imageSize);
 
         Task RenderEpisodesAsync(

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -39,6 +40,17 @@ namespace VideoTests
                 Thread.Sleep(300);
             }
             Assert.AreEqual(100, allThumbnails.Count);
+        }
+
+        [Test]
+        public void ExtractThumbnailToBagFromInternet()
+        {
+            var videoUtils = new VideoUtils();
+            var thumbnailTask = videoUtils.GetFrameFromVideoAsByteAsync("https://www.youtube.com/watch?v=Tt5Y78DioZM", 2000);
+            thumbnailTask.Wait();
+            var thumbnail = thumbnailTask.Result;
+            File.WriteAllBytes("Thumbnail.bmp", thumbnail);
+            Process.Start("Thumbnail.bmp").WaitForExit();
         }
 
         private async void ExtractThumbnailToBag(VideoUtils videoUtils, ConcurrentBag<byte[]> bag, int from)

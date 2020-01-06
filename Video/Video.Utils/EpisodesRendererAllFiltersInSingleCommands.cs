@@ -55,21 +55,23 @@ namespace Video.Utils
                 // ReSharper disable once ImpureMethodCallOnReadonlyValueField
                 // Внутри происходит регистрация через ссылку на родительский CancellationTokenSource.
                 this.cancellationToken.Register(() => subject.OnNext(0));
-                var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable());
-                ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
+                using (var ffMpeg = new FFMpeg(temporaryFilesStorage, this.rendererProcessPriorityClass, subject.AsObservable()))
+                {
+                    ffMpeg.LogMessage($"Started rendering of {this.outputFile}", string.Empty);
 
-                var cutInfos = this.VideoRenderOptions.Select(
-                    v =>
-                    {
-                        if (string.IsNullOrEmpty(v.FilePath))
+                    var cutInfos = this.VideoRenderOptions.Select(
+                        v =>
                         {
-                            return new FFMpegCutInfo(v.VideoStreamPath, v.AudioStreamPath, v.StartSecond, v.StartSecond + v.DurationSeconds);
-                        }
+                            if (string.IsNullOrEmpty(v.FilePath))
+                            {
+                                return new FFMpegCutInfo(v.VideoStreamPath, v.AudioStreamPath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                            }
 
-                        return new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds);
-                    }).ToList();
+                            return new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                        }).ToList();
 
-                this.CutAndConcatAndRenderTextAndImageAndTimeWarps(cutInfos, ffMpeg, temporaryFilesStorage);
+                    this.CutAndConcatAndRenderTextAndImageAndTimeWarps(cutInfos, ffMpeg, temporaryFilesStorage);
+                }
             }
         }
 
