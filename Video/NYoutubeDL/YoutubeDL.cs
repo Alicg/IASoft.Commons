@@ -450,6 +450,7 @@ namespace NYoutubeDL
                     UseShellExecute = false
                 });
             await updateProcess.WaitForExitAsync();
+            await Task.Delay(6000);
         }
     }
 }
