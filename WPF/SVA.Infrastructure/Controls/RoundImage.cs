@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace SVA.Infrastructure.Controls
 {
@@ -16,6 +17,18 @@ namespace SVA.Infrastructure.Controls
         {
             get { return (IList<byte>)GetValue(ImageBytesProperty); }
             set { SetValue(ImageBytesProperty, value); }
+        }
+        
+        public static readonly DependencyProperty BorderBrushColorProperty = DependencyProperty.Register(
+            "BorderBrushColor",
+            typeof(Brush),
+            typeof(RoundImage),
+            new PropertyMetadata(default(Brush)));
+
+        public Brush BorderBrushColor
+        {
+            get { return (Brush)GetValue(BorderBrushColorProperty); }
+            set { SetValue(BorderBrushColorProperty, value); }
         }
 
         public static readonly DependencyProperty HeightProperty = DependencyProperty.Register(

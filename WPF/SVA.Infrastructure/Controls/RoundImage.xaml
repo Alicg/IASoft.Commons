@@ -10,7 +10,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{markup:Type controls:RoundImage}">
-                    <Ellipse Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" DataContext="{TemplateBinding ImageBytes}">
+                    <Ellipse Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" DataContext="{TemplateBinding ImageBytes}" Stroke="{TemplateBinding BorderBrushColor}">
                         <Ellipse.Fill>
                             <ImageBrush ImageSource="{Binding Converter={StaticResource ImageConverter}}" />
                         </Ellipse.Fill>
