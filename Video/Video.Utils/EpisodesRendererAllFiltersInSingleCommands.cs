@@ -64,10 +64,10 @@ namespace Video.Utils
                         {
                             if (string.IsNullOrEmpty(v.FilePath))
                             {
-                                return new FFMpegCutInfo(v.VideoStreamPath, v.AudioStreamPath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                                return new FFMpegCutInfo(v.VideoStreamPath, v.AudioStreamPath, v.StartSecond, v.StartSecond + v.DurationSeconds, v.IsMuted);
                             }
 
-                            return new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds);
+                            return new FFMpegCutInfo(v.FilePath, v.StartSecond, v.StartSecond + v.DurationSeconds, v.IsMuted);
                         }).ToList();
 
                     this.CutAndConcatAndRenderTextAndImageAndTimeWarps(cutInfos, ffMpeg, temporaryFilesStorage);

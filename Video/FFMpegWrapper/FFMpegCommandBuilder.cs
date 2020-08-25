@@ -405,11 +405,11 @@ namespace FFMpegWrapper
             var cutfilter = new StringBuilder();
             var concatFilterBuilder = new StringBuilder();
             int cutIndexer = 0;
-            foreach (var unused in cutInfos)
+            foreach (var cutInfo in cutInfos)
             {
-                if (unused.InputPath != null)
+                if (cutInfo.InputPath != null)
                 {
-                    cutIndexer = this.PrepareConcatFilterForSingleVideo(cutfilter, concatFilterBuilder, cutIndexer, finalScale);
+                    cutIndexer = this.PrepareConcatFilterForSingleVideo(cutfilter, concatFilterBuilder, cutIndexer, finalScale, cutInfo.IsMuted);
                 }
                 else
                 {
@@ -426,7 +426,7 @@ namespace FFMpegWrapper
         /// <summary>
         /// Если видео и аудио поток находятся в одном источнике. Например mp4 файл на диске.
         /// </summary>
-        private int PrepareConcatFilterForSingleVideo(StringBuilder cutfilter, StringBuilder concatFilterBuilder, int cutIndexer, Size finalScale)
+        private int PrepareConcatFilterForSingleVideo(StringBuilder cutfilter, StringBuilder concatFilterBuilder, int cutIndexer, Size finalScale, bool isMuted)
         {
             if (finalScale.IsEmpty)
             {
@@ -444,7 +444,19 @@ namespace FFMpegWrapper
                     $"[v{cutIndexer}];");
             }
 
-            concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer}:1]");
+            if (isMuted)
+            {
+                cutfilter.Append(
+                    $"[{cutIndexer}:1]" +
+                    $"volume=0" +
+                    $"[a{cutIndexer}];");
+                concatFilterBuilder.Append($"[v{cutIndexer}][a{cutIndexer}]");
+            }
+            else
+            {
+                concatFilterBuilder.Append($"[v{cutIndexer}][{cutIndexer}:1]");
+            }
+
 
             return cutIndexer + 1;
         }
