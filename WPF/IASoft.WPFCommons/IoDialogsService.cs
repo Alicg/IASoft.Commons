@@ -30,6 +30,14 @@ namespace IASoft.WPFCommons
             return null;
         }
 
+        public string OpenFile(string initialDirectory, string defaultExtension, string filter, out bool cancelled,
+            string title = null)
+        {
+            var file = this.OpenFile(initialDirectory, defaultExtension, filter);
+            cancelled = file == null;
+            return file;
+        }
+
         public string OpenFolder(string initialDirectory)
         {
             using (var dialog = new FolderBrowserDialog())
