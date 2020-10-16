@@ -3,7 +3,8 @@
                     xmlns:converters="clr-namespace:SVA.Infrastructure.Converters"
                     xmlns:extensions="clr-namespace:SVA.Infrastructure.Extensions"
                     xmlns:wpfCommons="clr-namespace:IASoft.WPFCommons;assembly=IASoft.WPFCommons"
-                    xmlns:popupWindows="clr-namespace:IASoft.MaterialDesignCommons.PopupWindows;assembly=IASoft.MaterialDesignCommons">
+                    xmlns:popupWindows="clr-namespace:IASoft.MaterialDesignCommons.PopupWindows;assembly=IASoft.MaterialDesignCommons" 
+                    xmlns:materialDesignMahApps="http://materialdesigninxaml.net/winfx/xaml/themes">
     <ResourceDictionary.MergedDictionaries>
         <wpfCommons:SharedResourceDictionary Source="Icons.xaml" />
         <wpfCommons:SharedResourceDictionary Source="Styles/HighlightedBorder.xaml" />

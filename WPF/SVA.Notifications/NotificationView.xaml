@@ -21,10 +21,9 @@
     </UserControl.Resources>
     <Grid>
         <materialDesign:Card BorderThickness="0" materialDesign:ShadowAssist.ShadowDepth="Depth3" VerticalAlignment="Bottom">
-            <Expander x:Name="ContentExpander" ExpandDirection="Up" FontSize="13"
-                      Background="AliceBlue" materialDesign:ShadowAssist.ShadowDepth="Depth3">
+            <Expander x:Name="ContentExpander" ExpandDirection="Up" Background="AliceBlue" materialDesign:ShadowAssist.ShadowDepth="Depth3" materialDesign:ExpanderAssist.HorizontalHeaderPadding="3">
                 <Expander.Header>
-                    <TextBlock Text="Notifications" Foreground="SeaGreen" Height="24" FontWeight="Bold" FontSize="22" FontFamily="Century Gothic"/>
+                    <TextBlock Text="Notifications" Foreground="SeaGreen" Height="22" FontWeight="Bold" FontSize="22" FontFamily="Century Gothic" HorizontalAlignment="Center"/>
                 </Expander.Header>
                 <Grid IsSharedSizeScope="True" HorizontalAlignment="Stretch" MaxHeight="200" Margin="0,0,0,5">
                     <Grid>

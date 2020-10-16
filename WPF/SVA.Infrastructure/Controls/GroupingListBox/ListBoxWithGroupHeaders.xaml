@@ -14,9 +14,6 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <ScrollViewer.Resources>
             <ResourceDictionary>
-                <ResourceDictionary.MergedDictionaries>
-                    <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
-                </ResourceDictionary.MergedDictionaries>
                 <CollectionViewSource x:Key="GroupedElements" Source="{Binding ItemsWithGroupHeader}" >
                     <CollectionViewSource.SortDescriptions>
                         <componentModel:SortDescription PropertyName="Element.SortingDate" Direction="Descending"/>
@@ -46,10 +43,10 @@
                                 <Setter.Value>
                                     <ControlTemplate>
                                         <materialDesign:Card HorizontalAlignment="Stretch" materialDesign:ShadowAssist.ShadowDepth="Depth3" Margin="0,0,0,2">
-                                            <Expander IsExpanded="True">
+                                            <Expander IsExpanded="True" ExpandDirection="Down">
                                                 <Expander.Header>
                                                     <TextBlock Text="{Binding Name, Converter={StaticResource GroupHeaderTypesToStringConverter}}"
-                                                               Foreground="{DynamicResource SecondaryAccentBrush}" FontWeight="Bold"
+                                                               Foreground="{DynamicResource SecondaryHueMidBrush}" FontWeight="Bold"
                                                                HorizontalAlignment="Right" FontSize="16"/>
                                                 </Expander.Header>
                                                 <ItemsPresenter />

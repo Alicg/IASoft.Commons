@@ -9,8 +9,7 @@
         <!-- MahApps -->
         <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
         <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
-        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/themes/light.blue.xaml" />
 
         <!-- Material Design -->
         <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />

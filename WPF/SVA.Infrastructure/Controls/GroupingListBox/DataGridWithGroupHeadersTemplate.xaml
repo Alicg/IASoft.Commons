@@ -6,7 +6,6 @@
                     xmlns:extensions="clr-namespace:SVA.Infrastructure.Extensions"
                     xmlns:wpfCommons="clr-namespace:IASoft.WPFCommons;assembly=IASoft.WPFCommons">
     <ResourceDictionary.MergedDictionaries>
-        <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
         <wpfCommons:SharedResourceDictionary Source="pack://application:,,,/SVA.Infrastructure;component/InfrastructureResources.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style TargetType="{x:Type groupingListBox:DataGridWithGroupHeaders}">
@@ -44,9 +43,9 @@
                                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                                             <TextBlock Text="{Binding Name, Converter={StaticResource GroupHeaderTypesToStringConverter}}" 
                                                                                     FontWeight="Bold" FontSize="16" 
-                                                                                   Foreground="{DynamicResource SecondaryAccentBrush}"/>
-                                                                            <TextBlock Text="-" Foreground="{DynamicResource SecondaryAccentBrush}"/>
-                                                                            <TextBlock Text="{Binding ItemCount}" Foreground="{DynamicResource SecondaryAccentBrush}"></TextBlock>
+                                                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                                            <TextBlock Text="-" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                                            <TextBlock Text="{Binding ItemCount}" Foreground="{DynamicResource SecondaryHueMidBrush}"></TextBlock>
                                                                         </StackPanel>
                                                                     </Expander.Header>
                                                                     <ItemsPresenter />

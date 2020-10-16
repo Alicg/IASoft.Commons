@@ -33,6 +33,7 @@
         <GradientStop Color="#00FFFFFF" Offset="0"/>
         <GradientStop Color="#FFFFFFFF" Offset="0.1"/>
     </LinearGradientBrush>
+    <SolidColorBrush x:Key="AccentColorBrush" Color="{DynamicResource Primary500}"/>
     <!--<SolidColorBrush x:Key="windowBrush">-->
 <!--    <SolidColorBrush.Color>-->
 <!--        <Color A="255" R="120" G="163" B="195"/>-->
