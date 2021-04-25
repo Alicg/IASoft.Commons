@@ -416,7 +416,7 @@ namespace NYoutubeDL
                     if (this.process != null && !this.process.HasExited)
                     {
                         string output;
-                        if (!string.IsNullOrEmpty(output = this.process.StandardOutput.ReadLine()))
+                        if (!string.IsNullOrEmpty(output = this.process.StandardOutput.ReadLine()) && output != "null")
                         {
                             this.stdOutputEvent?.Invoke(this, output);
                         }

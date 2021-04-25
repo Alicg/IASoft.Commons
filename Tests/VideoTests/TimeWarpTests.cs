@@ -58,7 +58,7 @@
                     new List<TimeWarpRecord> { new TimeWarpRecord(2, 4, 7) }));
             ffmpegVideoRenderer.StartRender(Output, new Size(1280, 720));
             sw.Stop();
-            Thread.Sleep(1000); //чтобы лог закончил заполняться.
+            Thread.Sleep(3000); //чтобы лог закончил заполняться.
             Assert.IsTrue(File.Exists(Output));
         }
     }

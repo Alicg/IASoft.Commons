@@ -13,7 +13,7 @@ namespace VideoTests
 
         public static readonly string RealInputVideoAVI = Path.Combine(InputFolder, "GBL.avi");
 
-        public static readonly string RealInputVideoAVI2 = Path.Combine(InputFolder, "Гандбол. Ч.Е. Финал. Дания-Франция. Багга. 26.01.2014.avi");
+        public static readonly string RealInputVideoAVI2 = Path.Combine(InputFolder, "GBL.avi");
 
         public static readonly string RealInputVideoMP4 = Path.Combine(InputFolder, "HDV_1626.mp4");
 

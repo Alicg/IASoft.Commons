@@ -52,7 +52,7 @@ namespace VideoTests
             const string FileToConcat2 = OutputFolder + "2EpisodeToConcat_tmp.avi";
             const string FileToConcat3 = OutputFolder + "3EpisodeToConcat_tmp.avi";
 
-            string source = Path.Combine(this.InputFolder, "Гандбол. ЛЧ. 2014-2015. 6-й тур. Багга. 25.11.2014.avi");
+            string source = Path.Combine(this.InputFolder, SampleFiles.RealInputVideoAVI2);
 
             var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions1 = FFMpegCutOptions.BuildCatOptionsWithConvertations(source,
@@ -106,7 +106,7 @@ namespace VideoTests
             const string FileToConcat2TW = OutputFolder + "2EpisodeToConcat_tmpTW.avi";
             const string FileToConcat3 = OutputFolder + "3EpisodeToConcat_tmp.avi";
 
-            string source = Path.Combine(this.InputFolder, "Гандбол. Ч.Е. Финал. Дания-Франция. Багга. 26.01.2014.avi");
+            string source = Path.Combine(this.InputFolder, SampleFiles.RealInputVideoAVI2);
 
             var ffmpeg = new FFMpeg(this.temporaryFilesStorage);
             var cutOptions1 = FFMpegCutOptions.BuildSimpleCatOptions(source, FileToConcat1, 100, 20, GlobalExportProgress.Empty);

@@ -348,6 +348,12 @@ namespace FFMpegWrapper
             return this;
         }
 
+        public FFMpegCommandBuilder Fix2FramesLeftError()
+        {
+            this.parametersAccumulator.AppendFormat(" -max_muxing_queue_size 1024 ");
+            return this;
+        }
+
         public FFMpegCommandBuilder WithFlags(string flags)
         {
             this.parametersAccumulator.AppendFormat(" -flags {0} ", flags);
